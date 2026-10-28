@@ -49,7 +49,83 @@ function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&l
 $("authForm").onsubmit=async e=>{e.preventDefault();$("submitAuth").disabled=true;clear("authMsg");try{let email=$("email").value.trim(),password=$("password").value;if(mode==="signup"){if(password!==$("password2").value)throw Error("Passwords do not match.");let r=await sb.auth.signUp({email,password,options:{data:{display_name:$("name").value.trim()}}});if(r.error)throw r.error;if(r.data.session)await showSession(r.data.session);else msg("authMsg","Signup request accepted. Signup request accepted. If email confirmation is required, check your inbox and confirm your email address before signing in., follow its verification step. If SMS is unavailable, we must switch to a supported no-SMS login method.","success")}else{let r=await sb.auth.signInWithPassword({email,password});if(r.error)throw r.error;await showSession(r.data.session)}}catch(err){msg("authMsg",err.message||"Authentication failed.","error")}finally{$("submitAuth").disabled=false}};
 $("refresh").onclick=async()=>{if(!user)return;let r=await sb.from("profiles").select("*").eq("id",user.id).maybeSingle();if(r.error)msg("pendingMsg",r.error.message,"error");else if(r.data?.account_status==="approved")await showSession({user});else msg("pendingMsg",r.data?"Account status: "+r.data.account_status:"Profile not found. Contact administrator.")};
 $("logout").onclick=logout;$("logout2").onclick=logout;$("reload").onclick=loadRecords;$("date").value=new Date().toISOString().slice(0,10);
-$("expenseForm").onsubmit=async e=>{e.preventDefault();let r=await sb.from("expenses").insert({submitted_by:user.id,description:$("desc").value.trim(),amount:Number($("amount").value),category:$("category").value,expense_date:$("date").value,payment_method:$("payment").value,status:"pending"});if(r.error)msg("expenseMsg",r.error.message,"error");else{$("expenseForm").reset();$("date").value=new Date().toISOString().slice(0,10);msg("expenseMsg","Expense submitted for approval.","success");await loadRecords()}};
+
+$("expenseForm").onsubmit = async e => {
+  e.preventDefault();
+
+  const button = $("expenseForm").querySelector("button[type='submit'], button:not([type])");
+  const file = $("receipt").files[0];
+  let receiptPath = null;
+  let uploadedPath = null;
+
+  try {
+    if (!user || profile?.account_status !== "approved") {
+      throw new Error("Your account must be approved to submit expenses.");
+    }
+
+    if (file) {
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "application/pdf"
+      ];
+
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error("Choose a JPEG, PNG, WebP, or PDF receipt.");
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error("Receipt must be 5 MB or smaller.");
+      }
+
+      const ext = {
+        "image/jpeg": "jpg",
+        "image/png": "png",
+        "image/webp": "webp",
+        "application/pdf": "pdf"
+      }[file.type];
+
+      receiptPath = `${user.id}/${crypto.randomUUID()}.${ext}`;
+
+      const upload = await sb.storage
+        .from("receipts")
+        .upload(receiptPath, file, {
+          contentType: file.type,
+          upsert: false
+        });
+
+      if (upload.error) throw upload.error;
+      uploadedPath = receiptPath;
+    }
+
+    const result = await sb.from("expenses").insert({
+      submitted_by: user.id,
+      description: $("desc").value.trim(),
+      amount: Number($("amount").value),
+      category: $("category").value,
+      expense_date: $("date").value,
+      payment_method: $("payment").value,
+      receipt_path: receiptPath,
+      status: "pending"
+    });
+
+    if (result.error) throw result.error;
+
+    $("expenseForm").reset();
+    $("date").value = new Date().toISOString().slice(0, 10);
+    msg("expenseMsg", "Expense submitted for approval.", "success");
+    await loadRecords();
+
+  } catch (err) {
+    if (uploadedPath) {
+      await sb.storage.from("receipts").remove([uploadedPath]);
+    }
+    msg("expenseMsg", "Could not submit expense: " + (err.message || "Unknown error"), "error");
+  } finally {
+    if (button) button.disabled = false;
+  }
+};
 
 async function loadAdminPanel() {
   if (profile?.role !== "admin" || profile?.account_status !== "approved") return;
