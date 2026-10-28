@@ -167,7 +167,9 @@ async function openReceipt(path) {
 $("records").addEventListener("click", e => {
   const button = e.target.closest("button[data-receipt]");
   if (button) openReceipt(button.dataset.receipt);
-});async function loadAdminPanel() {
+});
+
+async function loadAdminPanel() {
   if (profile?.role !== "admin" || profile?.account_status !== "approved") return;
 
   $("adminUsers").textContent = "Loading accounts...";
