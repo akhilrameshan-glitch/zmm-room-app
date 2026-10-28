@@ -197,24 +197,53 @@ async function loadAdminPanel() {
       : "No pending accounts.";
   }
 
-  const expenses = await sb.from("expenses")
-    .select("id,description,amount,category,expense_date,payment_method,submitted_by,receipt_path")
-    .eq("status", "pending")
-    .order("created_at", { ascending: false });
+  
+const expenses = await sb.from("expenses")
+  .select("id,description,amount,category,expense_date,payment_method,submitted_by,receipt_path")
+  .eq("status", "pending")
+  .order("created_at", { ascending: false });
 
-  if (expenses.error) {
-    $("adminExpenses").textContent = "Could not load expenses: " + expenses.error.message;
-  } else {
-    $("adminExpenses").innerHTML = (expenses.data || []).length
-      ? expenses.data.map(x => `
-        <div class="item">
-          <b>${esc(x.description)}</b> — ${money(x.amount)}
-          <div class="muted">${esc(x.expense_date || "")} · ${esc(x.category || "")} · ${esc(x.payment_method || "")}</div>
-          <button type="button" data-expense="${esc(x.id)}" data-status="approved">Approve</button>
-<button type="button" class="secondary" data-expense="${esc(x.id)}" data-status="rejected">Reject</button>
-        </div>`).join("")
-      : "No pending expenses.";
-  }
+if (expenses.error) {
+  $("adminExpenses").textContent = "Could not load expenses: " + expenses.error.message;
+} else {
+  const submitterIds = [...new Set(
+    (expenses.data || []).map(x => x.submitted_by).filter(Boolean)
+  )];
+
+  const profilesResult = submitterIds.length
+    ? await sb.from("profiles")
+        .select("id,display_name")
+        .in("id", submitterIds)
+    : { data: [], error: null };
+
+  const submitterNames = Object.fromEntries(
+    (profilesResult.data || []).map(p => [
+      p.id,
+      p.display_name || "Roommate"
+    ])
+  );
+
+  $("adminExpenses").innerHTML = (expenses.data || []).length
+    ? expenses.data.map(x => `
+      <div class="item">
+        <b>${esc(x.description)}</b> — ${money(x.amount)}
+        <div class="muted">
+          Submitted by: ${esc(submitterNames[x.submitted_by] || "Unknown roommate")}
+        </div>
+        <div class="muted">
+          ${esc(x.expense_date || "")} ·
+          ${esc(x.category || "")} ·
+          ${esc(x.payment_method || "")}
+        </div>
+        ${x.receipt_path
+          ? `<button type="button" data-receipt="${esc(x.receipt_path)}">View receipt</button>`
+          : ""}
+        <button type="button" data-expense="${esc(x.id)}" data-status="approved">Approve</button>
+        <button type="button" class="secondary" data-expense="${esc(x.id)}" data-status="rejected">Reject</button>
+      </div>`).join("")
+    : "No pending expenses.";
+}
+
 }
 
 $("admin").addEventListener("click", async e => {
