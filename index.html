@@ -8,7 +8,15 @@
 <form id="authForm"><div id="nameBox"><label>Your name</label><input id="name" maxlength="80" autocomplete="name" required></div><label>Email address</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com" required><label>Password (minimum 8 characters)</label><input id="password" type="password" minlength="8" autocomplete="current-password" required><div id="confirmBox"><label>Confirm password</label><input id="password2" type="password" minlength="8"></div><div class="actions"><button id="submitAuth">Create account</button></div></form><div id="authMsg" class="notice hidden"></div><p class="muted"><p class="muted">Register and sign in using your email address and password. New accounts require administrator approval before submitting expenses.</p>. No SMS provider is configured here; do not add paid SMS credentials. If phone/password sign-up is blocked, we will choose a no-SMS alternative rather than bypass authentication.</p></section>
 <section id="pending" class="card hidden"><h2>Awaiting approval</h2><p>Your account is not approved yet. You cannot submit expenses until an administrator approves it.</p><div class="actions"><button id="refresh" type="button">Check status</button><button id="logout2" class="secondary" type="button">Log out</button></div><div id="pendingMsg" class="notice hidden"></div></section>
 <section id="app" class="hidden"><div class="card"><div class="actions" style="justify-content:space-between"><div><h2 id="hello">Dashboard</h2><div id="who" class="muted"></div></div><button id="logout" class="secondary" type="button">Log out</button></div><div class="grid"><div class="stat"><small>Approved expenses shown</small><strong id="approvedTotal">⃃ 0.00</strong></div><div class="stat"><small>My pending</small><strong id="pendingTotal">⃃ 0.00</strong></div><div class="stat"><small>Approved records</small><strong id="approvedCount">0</strong></div></div></div>
-<div class="cols"><section class="card"><h2>Submit expense</h2><form id="expenseForm"><label>Description</label><input id="desc" required maxlength="160"><label>Amount (AED)</label><input id="amount" type="number" min=".01" step=".01" required><label>Category</label><select id="category"><option>Groceries</option><option>Utilities</option><option>Rent</option><option>Cleaning</option><option>Maintenance</option><option>Internet</option><option>Other</option></select><label>Date</label><input id="date" type="date" required><label>Payment method</label><select id="payment"><option>Cash</option><option>Bank transfer</option><option>Credit card</option><option>Debit card</option><option>Other</option></select><label>Receipt file (not active yet)</label><input id="receipt" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"><p class="muted">Private receipt storage must be configured before uploads can be enabled.</p><div class="actions"><button>Submit for approval</button></div></form><div id="expenseMsg" class="notice hidden"></div></section><section class="card"><h2>Expense records</h2><div id="records">Loading…</div><div class="actions"><button id="reload" class="secondary" type="button">Refresh records</button></div></section></div>
+
+<section class="card">
+  <h2>Roommate Balances</h2>
+  <p class="muted">Equal sharing of approved expenses among approved roommates.</p>
+  <div id="balances">Balances will appear here.</div>
+</section>
+
+<div class="cols"><section class="card"><h2>Submit expense</h2>
+<form id="expenseForm"><label>Description</label><input id="desc" required maxlength="160"><label>Amount (AED)</label><input id="amount" type="number" min=".01" step=".01" required><label>Category</label><select id="category"><option>Groceries</option><option>Utilities</option><option>Rent</option><option>Cleaning</option><option>Maintenance</option><option>Internet</option><option>Other</option></select><label>Date</label><input id="date" type="date" required><label>Payment method</label><select id="payment"><option>Cash</option><option>Bank transfer</option><option>Credit card</option><option>Debit card</option><option>Other</option></select><label>Receipt file (not active yet)</label><input id="receipt" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"><p class="muted">Private receipt storage must be configured before uploads can be enabled.</p><div class="actions"><button>Submit for approval</button></div></form><div id="expenseMsg" class="notice hidden"></div></section><section class="card"><h2>Expense records</h2><div id="records">Loading…</div><div class="actions"><button id="reload" class="secondary" type="button">Refresh records</button></div></section></div>
 
 <section id="admin" class="card hidden">
   <h2>Administrator Panel</h2>
@@ -59,7 +67,124 @@ async function openReceipt(path) {
 
   window.open(result.data.signedUrl, "_blank", "noopener,noreferrer");
 }
-async function loadRecords(){let r=await sb.from("expenses").select("id,description,amount,category,expense_date,payment_method,status,submitted_by,receipt_path").order("created_at",{ascending:false}).limit(100);if(r.error){$("records").textContent="Could not load: "+r.error.message;return}let a=r.data||[],approved=a.filter(x=>x.status==="approved"),pending=a.filter(x=>x.status==="pending"&&x.submitted_by===user.id);$("approvedTotal").textContent=money(approved.reduce((s,x)=>s+Number(x.amount),0));$("pendingTotal").textContent=money(pending.reduce((s,x)=>s+Number(x.amount),0));$("approvedCount").textContent=approved.length;if(!a.length){$("records").textContent="No records yet.";return}$("records").innerHTML = a.map(x => `
+
+async function loadRecords() {
+  const r = await sb.from("expenses")
+    .select("id,description,amount,category,expense_date,payment_method,status,submitted_by,receipt_path")
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  if (r.error) {
+    $("records").textContent = "Could not load: " + r.error.message;
+    return;
+  }
+
+  const a = r.data || [];
+  const approved = a.filter(x => x.status === "approved");
+  const pending = a.filter(
+    x => x.status === "pending" && x.submitted_by === user.id
+  );
+
+  $("approvedTotal").textContent = money(
+    approved.reduce((s, x) => s + Number(x.amount), 0)
+  );
+  $("pendingTotal").textContent = money(
+    pending.reduce((s, x) => s + Number(x.amount), 0)
+  );
+  $("approvedCount").textContent = approved.length;
+
+  $("records").innerHTML = a.length
+    ? a.map(x => `
+      <div class="item">
+        <b>${esc(x.description)}</b> — <b>${money(x.amount)}</b>
+        <div class="muted">
+          ${esc(x.expense_date || "")} ·
+          ${esc(x.category || "Other")} ·
+          ${esc(x.payment_method || "")}
+        </div>
+        <span class="pill ${esc(x.status)}">${esc(x.status)}</span>
+        ${x.receipt_path
+          ? `<button type="button" data-receipt="${esc(x.receipt_path)}">View receipt</button>`
+          : ""}
+      </div>
+    `).join("")
+    : "No records yet.";
+
+  // Load all approved expenses for the balance calculation.
+  const allExpenses = await sb.from("expenses")
+    .select("amount,submitted_by")
+    .eq("status", "approved");
+
+  if (allExpenses.error) {
+    $("balances").textContent =
+      "Could not calculate balances: " + allExpenses.error.message;
+    return;
+  }
+
+  // Get approved roommate accounts.
+  const people = await sb.from("profiles")
+    .select("id,display_name")
+    .eq("role", "roommate")
+    .eq("account_status", "approved");
+
+  if (people.error) {
+    $("balances").textContent =
+      "Could not load roommates: " + people.error.message;
+    return;
+  }
+
+  const roommates = people.data || [];
+
+  if (!roommates.length) {
+    $("balances").textContent = "No approved roommates found.";
+    return;
+  }
+
+  const expenses = allExpenses.data || [];
+  const total = expenses.reduce(
+    (sum, x) => sum + Number(x.amount), 0
+  );
+  const share = total / roommates.length;
+
+  const balances = roommates.map(p => {
+    const paid = expenses
+      .filter(x => x.submitted_by === p.id)
+      .reduce((sum, x) => sum + Number(x.amount), 0);
+
+    return {
+      name: p.display_name || "Roommate",
+      paid,
+      balance: paid - share
+    };
+  });
+
+  $("balances").innerHTML = `
+    <div class="item">
+      <b>Total approved expenses:</b> ${money(total)}
+      <div class="muted">
+        Equal share per roommate: ${money(share)}
+      </div>
+    </div>
+    ${balances.map(b => `
+      <div class="item">
+        <b>${esc(b.name)}</b>
+        <div class="muted">Paid: ${money(b.paid)}</div>
+        <div>
+          ${Math.abs(b.balance) < 0.01
+            ? "Settled"
+            : b.balance > 0
+              ? "Should receive: " + money(b.balance)
+              : "Owes: " + money(-b.balance)}
+        </div>
+      </div>
+    `).join("")}
+    <p class="muted">
+      These are net balances based on approved expenses.
+      Pending and rejected expenses are excluded.
+    </p>
+  `;
+}
+let r=await sb.from("expenses").select("id,description,amount,category,expense_date,payment_method,status,submitted_by,receipt_path").order("created_at",{ascending:false}).limit(100);if(r.error){$("records").textContent="Could not load: "+r.error.message;return}let a=r.data||[],approved=a.filter(x=>x.status==="approved"),pending=a.filter(x=>x.status==="pending"&&x.submitted_by===user.id);$("approvedTotal").textContent=money(approved.reduce((s,x)=>s+Number(x.amount),0));$("pendingTotal").textContent=money(pending.reduce((s,x)=>s+Number(x.amount),0));$("approvedCount").textContent=approved.length;if(!a.length){$("records").textContent="No records yet.";return}$("records").innerHTML = a.map(x => `
   <div class="item">
     <b>${esc(x.description)}</b> — <b>${money(x.amount)}</b>
     <div class="muted">${esc(x.expense_date || "")} · ${esc(x.category || "Other")} · ${esc(x.payment_method || "")}</div>
