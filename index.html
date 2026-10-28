@@ -12,7 +12,7 @@
 <section id="admin" class="card hidden"><h2>Administrator</h2><div class="notice">Admin approval tools are not enabled yet. The first admin must be assigned securely before account and expense approvals can be used.</div></section></section>
 </main><footer class="muted" style="text-align:center;padding:10px 20px 25px">Do not enter real financial data until setup and security testing are complete.</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script><script>
-const URL="https://foazsjrksijmdjxyefni.supabase.co";
+const SUPABASE_URL="https://foazsjrksijmdjxyefni.supabase.co";
 const KEY="sb_publishable_ct8j1of2fZHmLUTutXA9tg_98UA70cB";
 const $=id=>document.getElementById(id);let sb,mode="signup",user,profile;
 const money=n=>"⃃ "+Number(n||0).toLocaleString("en-AE",{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -28,6 +28,6 @@ $("authForm").onsubmit=async e=>{e.preventDefault();$("submitAuth").disabled=tru
 $("refresh").onclick=async()=>{if(!user)return;let r=await sb.from("profiles").select("*").eq("id",user.id).maybeSingle();if(r.error)msg("pendingMsg",r.error.message,"error");else if(r.data?.account_status==="approved")await showSession({user});else msg("pendingMsg",r.data?"Account status: "+r.data.account_status:"Profile not found. Contact administrator.")};
 $("logout").onclick=logout;$("logout2").onclick=logout;$("reload").onclick=loadRecords;$("date").value=new Date().toISOString().slice(0,10);
 $("expenseForm").onsubmit=async e=>{e.preventDefault();let r=await sb.from("expenses").insert({submitted_by:user.id,description:$("desc").value.trim(),amount:Number($("amount").value),category:$("category").value,expense_date:$("date").value,payment_method:$("payment").value,status:"pending"});if(r.error)msg("expenseMsg",r.error.message,"error");else{$("expenseForm").reset();$("date").value=new Date().toISOString().slice(0,10);msg("expenseMsg","Expense submitted for approval.","success");await loadRecords()}};
-if(!window.supabase){$("setup").textContent="Supabase client failed to load. Check your internet connection.";$("setup").classList.remove("hidden")}else{sb=window.supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true}});sb.auth.getSession().then(r=>{if(r.data.session)showSession(r.data.session)});sb.auth.onAuthStateChange((ev,s)=>{if(s)showSession(s);else showAuth()})}
+if(!window.supabase){$("setup").textContent="Supabase client failed to load. Check your internet connection.";$("setup").classList.remove("hidden")}else{sb=window.supabase.createClient(SUPABASE_URL,KEY,{auth:{persistSession:true,autoRefreshToken:true}});sb.auth.getSession().then(r=>{if(r.data.session)showSession(r.data.session)});sb.auth.onAuthStateChange((ev,s)=>{if(s)showSession(s);else showAuth()})}
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 </script></body></html>
