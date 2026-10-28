@@ -47,6 +47,87 @@ $("authForm").onsubmit=async e=>{e.preventDefault();$("submitAuth").disabled=tru
 $("refresh").onclick=async()=>{if(!user)return;let r=await sb.from("profiles").select("*").eq("id",user.id).maybeSingle();if(r.error)msg("pendingMsg",r.error.message,"error");else if(r.data?.account_status==="approved")await showSession({user});else msg("pendingMsg",r.data?"Account status: "+r.data.account_status:"Profile not found. Contact administrator.")};
 $("logout").onclick=logout;$("logout2").onclick=logout;$("reload").onclick=loadRecords;$("date").value=new Date().toISOString().slice(0,10);
 $("expenseForm").onsubmit=async e=>{e.preventDefault();let r=await sb.from("expenses").insert({submitted_by:user.id,description:$("desc").value.trim(),amount:Number($("amount").value),category:$("category").value,expense_date:$("date").value,payment_method:$("payment").value,status:"pending"});if(r.error)msg("expenseMsg",r.error.message,"error");else{$("expenseForm").reset();$("date").value=new Date().toISOString().slice(0,10);msg("expenseMsg","Expense submitted for approval.","success");await loadRecords()}};
+
+async function loadAdminPanel() {
+  if (profile?.role !== "admin" || profile?.account_status !== "approved") return;
+
+  $("adminUsers").textContent = "Loading accounts...";
+  $("adminExpenses").textContent = "Loading expenses...";
+
+  const users = await sb.from("profiles")
+    .select("id,display_name,account_status,role")
+    .order("display_name");
+
+  if (users.error) {
+    $("adminUsers").textContent = "Could not load accounts: " + users.error.message;
+  } else {
+    const pendingUsers = (users.data || []).filter(
+      p => p.account_status === "pending"
+    );
+
+    $("adminUsers").innerHTML = pendingUsers.length
+      ? pendingUsers.map(p => `
+        <div class="item">
+          <b>${esc(p.display_name || "Roommate")}</b>
+          <div class="muted">Status: ${esc(p.account_status)}</div>
+          <button type="button" data-user="${esc(p.id)}" data-status="approved">Approve</button>
+          <button type="button" class="secondary" data-user="${esc(p.id)}" data-status="rejected">Reject</button>
+        </div>`).join("")
+      : "No pending accounts.";
+  }
+
+  const expenses = await sb.from("expenses")
+    .select("id,description,amount,category,expense_date,payment_method,submitted_by")
+    .eq("status", "pending")
+    .order("created_at", { ascending: false });
+
+  if (expenses.error) {
+    $("adminExpenses").textContent = "Could not load expenses: " + expenses.error.message;
+  } else {
+    $("adminExpenses").innerHTML = (expenses.data || []).length
+      ? expenses.data.map(x => `
+        <div class="item">
+          <b>${esc(x.description)}</b> — ${money(x.amount)}
+          <div class="muted">${esc(x.expense_date || "")} · ${esc(x.category || "")} · ${esc(x.payment_method || "")}</div>
+          <button type="button" data-expense="${esc(x.id)}" data-status="approved">Approve</button>
+          <button type="button" class="secondary" data-expense="${esc(x.id)}" data-status="rejected">Reject</button>
+        </div>`).join("")
+      : "No pending expenses.";
+  }
+}
+
+$("admin").addEventListener("click", async e => {
+  const b = e.target.closest("button[data-user],button[data-expense]");
+  if (!b) return;
+
+  b.disabled = true;
+  $("adminMsg").classList.remove("hidden");
+
+  try {
+    let r;
+    if (b.dataset.user) {
+      r = await sb.from("profiles")
+        .update({ account_status: b.dataset.status })
+        .eq("id", b.dataset.user);
+    } else {
+      r = await sb.from("expenses")
+        .update({ status: b.dataset.status })
+        .eq("id", b.dataset.expense);
+    }
+
+    if (r.error) throw r.error;
+
+    $("adminMsg").textContent = "Action completed: " + b.dataset.status;
+    await loadAdminPanel();
+    await loadRecords();
+  } catch (err) {
+    $("adminMsg").textContent = "Could not update: " + err.message;
+  } finally {
+    b.disabled = false;
+  }
+});
+
+$("adminRefresh").onclick = loadAdminPanel;
 if(!window.supabase){$("setup").textContent="Supabase client failed to load. Check your internet connection.";$("setup").classList.remove("hidden")}else{sb=window.supabase.createClient(SUPABASE_URL,KEY,{auth:{persistSession:true,autoRefreshToken:true}});sb.auth.getSession().then(r=>{if(r.data.session)showSession(r.data.session)});sb.auth.onAuthStateChange((ev,s)=>{if(s)showSession(s);else showAuth()})}
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
 </script></body></html>
