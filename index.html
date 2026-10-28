@@ -9,7 +9,26 @@
 <section id="pending" class="card hidden"><h2>Awaiting approval</h2><p>Your account is not approved yet. You cannot submit expenses until an administrator approves it.</p><div class="actions"><button id="refresh" type="button">Check status</button><button id="logout2" class="secondary" type="button">Log out</button></div><div id="pendingMsg" class="notice hidden"></div></section>
 <section id="app" class="hidden"><div class="card"><div class="actions" style="justify-content:space-between"><div><h2 id="hello">Dashboard</h2><div id="who" class="muted"></div></div><button id="logout" class="secondary" type="button">Log out</button></div><div class="grid"><div class="stat"><small>Approved expenses shown</small><strong id="approvedTotal">⃃ 0.00</strong></div><div class="stat"><small>My pending</small><strong id="pendingTotal">⃃ 0.00</strong></div><div class="stat"><small>Approved records</small><strong id="approvedCount">0</strong></div></div></div>
 <div class="cols"><section class="card"><h2>Submit expense</h2><form id="expenseForm"><label>Description</label><input id="desc" required maxlength="160"><label>Amount (AED)</label><input id="amount" type="number" min=".01" step=".01" required><label>Category</label><select id="category"><option>Groceries</option><option>Utilities</option><option>Rent</option><option>Cleaning</option><option>Maintenance</option><option>Internet</option><option>Other</option></select><label>Date</label><input id="date" type="date" required><label>Payment method</label><select id="payment"><option>Cash</option><option>Bank transfer</option><option>Credit card</option><option>Debit card</option><option>Other</option></select><label>Receipt file (not active yet)</label><input id="receipt" type="file" accept="image/*,.pdf" disabled><p class="muted">Private receipt storage must be configured before uploads can be enabled.</p><div class="actions"><button>Submit for approval</button></div></form><div id="expenseMsg" class="notice hidden"></div></section><section class="card"><h2>Expense records</h2><div id="records">Loading…</div><div class="actions"><button id="reload" class="secondary" type="button">Refresh records</button></div></section></div>
-<section id="admin" class="card hidden"><h2>Administrator</h2><div class="notice">Admin approval tools are not enabled yet. The first admin must be assigned securely before account and expense approvals can be used.</div></section></section>
+
+<section id="admin" class="card hidden">
+  <h2>Administrator Panel</h2>
+
+  <h3>Roommate Accounts</h3>
+  <p class="muted">Approve or reject new registrations.</p>
+  <div id="adminUsers">Loading accounts...</div>
+
+  <h3>Pending Expenses</h3>
+  <p class="muted">Review expenses submitted by roommates.</p>
+  <div id="adminExpenses">Loading expenses...</div>
+
+  <div class="actions">
+    <button id="adminRefresh" type="button">Refresh admin panel</button>
+  </div>
+  <div id="adminMsg" class="notice hidden"></div>
+</section>
+</section>
+</main>
+
 </main><footer class="muted" style="text-align:center;padding:10px 20px 25px">Do not enter real financial data until setup and security testing are complete.</footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script><script>
 const SUPABASE_URL="https://foazsjrksijmdjxyefni.supabase.co";
