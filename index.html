@@ -196,7 +196,7 @@ $("records").addEventListener("click", e => {
   }
 
   const expenses = await sb.from("expenses")
-    .select("id,description,amount,category,expense_date,payment_method,submitted_by")
+    .select("id,description,amount,category,expense_date,payment_method,submitted_by,receipt_path")
     .eq("status", "pending")
     .order("created_at", { ascending: false });
 
@@ -208,7 +208,7 @@ $("records").addEventListener("click", e => {
         <div class="item">
           <b>${esc(x.description)}</b> — ${money(x.amount)}
           <div class="muted">${esc(x.expense_date || "")} · ${esc(x.category || "")} · ${esc(x.payment_method || "")}</div>
-          <button type="button" data-expense="${esc(x.id)}" data-status="approved">Approve</button>
+          <button type="button" data-expense="${esc(x.id)}" data-status="${x.receipt_path ? `<button type="button" data-receipt="${esc(x.receipt_path)}">View receipt</button>` : ""}">Approve</button>
           <button type="button" class="secondary" data-expense="${esc(x.id)}" data-status="rejected">Reject</button>
         </div>`).join("")
       : "No pending expenses.";
