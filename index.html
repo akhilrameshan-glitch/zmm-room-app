@@ -267,6 +267,28 @@ $("authForm").onsubmit=async e=>{e.preventDefault();$("submitAuth").disabled=tru
 $("refresh").onclick=async()=>{if(!user)return;let r=await sb.from("profiles").select("*").eq("id",user.id).maybeSingle();if(r.error)msg("pendingMsg",r.error.message,"error");else if(r.data?.account_status==="approved")await showSession({user});else msg("pendingMsg",r.data?"Account status: "+r.data.account_status:"Profile not found. Contact administrator.")};
 $("logout").onclick=logout;$("logout2").onclick=logout;$("reload").onclick=loadRecords;$("date").value=new Date().toISOString().slice(0,10);
 
+function showAppTab(tab) {
+  const views = {
+    home: $("homeView"),
+    submit: $("submitView"),
+    records: $("recordsView")
+  };
+
+  Object.entries(views).forEach(([name, element]) => {
+    element.classList.toggle("hidden", name !== tab);
+  });
+
+  $("homeTab").classList.toggle("secondary", tab !== "home");
+  $("submitTab").classList.toggle("secondary", tab !== "submit");
+  $("recordsTab").classList.toggle("secondary", tab !== "records");
+
+  if (tab === "records") loadRecords();
+}
+
+$("homeTab").onclick = () => showAppTab("home");
+$("submitTab").onclick = () => showAppTab("submit");
+$("recordsTab").onclick = () => showAppTab("records");
+
 $("expenseForm").onsubmit = async e => {
   e.preventDefault();
 
