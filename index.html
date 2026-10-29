@@ -195,7 +195,6 @@ $("records").innerHTML = visibleRecords.length
     </div>
   `).join("")
   : "No records to display.";
-    : "No records yet.";
   // Load all approved expenses for the balance calculation.
   
 const balanceResult = await sb.rpc("get_room_balances");
