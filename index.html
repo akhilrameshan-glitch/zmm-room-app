@@ -171,7 +171,20 @@ async function loadRecords() {
   );
   $("approvedCount").textContent = approved.length;
 
+const submitterIds = [...new Set(a.map(x => x.submitted_by).filter(Boolean))];
 
+const profilesResult = submitterIds.length
+  ? await sb.from("profiles")
+      .select("id,display_name")
+      .in("id", submitterIds)
+  : { data: [], error: null };
+
+const submitterNames = Object.fromEntries(
+  (profilesResult.data || []).map(p => [
+    p.id,
+    p.display_name || "Roommate"
+  ])
+);
 const visibleRecords = profile?.role === "admin"
   ? a
   : a.filter(x => x.submitted_by === user.id);
@@ -187,7 +200,7 @@ $("records").innerHTML = visibleRecords.length
       </div>
       <span class="pill ${esc(x.status)}">${esc(x.status)}</span>
       ${profile?.role === "admin"
-        ? `<div class="muted">Submitted by: ${esc(x.submitted_by)}</div>`
+        ? `<div class="muted">Submitted by: ${esc(submitterNames[x.submitted_by] || "Unknown roommate")}</div>`
         : ""}
       ${x.receipt_path
         ? `<button type="button" data-receipt="${esc(x.receipt_path)}">View receipt</button>`
