@@ -20,6 +20,7 @@
   <button type="button" id="homeTab">Home</button>
   <button type="button" id="submitTab" class="secondary">Submit Expense</button>
   <button type="button" id="recordsTab" class="secondary">My Records</button>
+  <button type="button" id="sharedExpensesTab" class="secondary hidden">Room Expenses</button>
 </div>
 
 <section id="homeView">
@@ -367,6 +368,54 @@ function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&l
 $("authForm").onsubmit=async e=>{e.preventDefault();$("submitAuth").disabled=true;clear("authMsg");try{let email=$("email").value.trim(),password=$("password").value;if(mode==="signup"){if(password!==$("password2").value)throw Error("Passwords do not match.");let r=await sb.auth.signUp({email,password,options:{data:{display_name:$("name").value.trim()}}});if(r.error)throw r.error;if(r.data.session)await showSession(r.data.session);else msg("authMsg","Registration successful. You can now sign in with your email and password. If email confirmation is required, check your inbox and confirm your email address before signing in., follow its verification step. If SMS is unavailable, we must switch to a supported no-SMS login method.","success")}else{let r=await sb.auth.signInWithPassword({email,password});if(r.error)throw r.error;await showSession(r.data.session)}}catch(err){msg("authMsg",err.message||"Authentication failed.","error")}finally{$("submitAuth").disabled=false}};
 $("refresh").onclick=async()=>{if(!user)return;let r=await sb.from("profiles").select("*").eq("id",user.id).maybeSingle();if(r.error)msg("pendingMsg",r.error.message,"error");else if(r.data?.account_status==="approved")await showSession({user});else msg("pendingMsg",r.data?"Account status: "+r.data.account_status:"Profile not found. Contact administrator.")};
 $("logout").onclick=logout;$("logout2").onclick=logout;$("reload").onclick=loadRecords;$("date").value=new Date().toISOString().slice(0,10);
+
+function showAppTab(tab) {
+  const isAdmin = profile?.role === "admin";
+
+  if (tab === "shared" && !isAdmin) {
+    tab = "home";
+  }
+
+  const views = {
+    home: $("homeView"),
+    submit: $("submitView"),
+    records: $("recordsView"),
+    shared: $("sharedExpensesView")
+  };
+
+  Object.entries(views).forEach(([name, element]) => {
+    if (element) {
+      element.classList.toggle("hidden", name !== tab);
+    }
+  });
+
+  $("homeTab").classList.toggle("secondary", tab !== "home");
+  $("submitTab").classList.toggle("secondary", tab !== "submit");
+  $("recordsTab").classList.toggle("secondary", tab !== "records");
+
+  const sharedTab = $("sharedExpensesTab");
+  if (sharedTab) {
+    sharedTab.classList.toggle("secondary", tab !== "shared");
+    sharedTab.classList.toggle("hidden", !isAdmin);
+  }
+
+  if (tab === "records") {
+    loadRecords();
+  }
+
+  if (tab === "shared" && isAdmin) {
+    loadSharedExpenses();
+  }
+}
+
+$("homeTab").onclick = () => showAppTab("home");
+$("submitTab").onclick = () => showAppTab("submit");
+$("recordsTab").onclick = () => showAppTab("records");
+
+const sharedTab = $("sharedExpensesTab");
+if (sharedTab) {
+  sharedTab.onclick = () => showAppTab("shared");
+}
 
 function showAppTab(tab) {
   const views = {
