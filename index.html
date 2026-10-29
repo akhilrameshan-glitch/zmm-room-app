@@ -85,6 +85,49 @@
   </div>
 </section>
 
+<section id="sharedExpensesView" class="hidden">
+  <div class="card">
+    <h2>Admin Room Expenses</h2>
+    <p class="muted">
+      Enter the combined amount for shared bills.
+      The amount will be divided equally among all approved roommates,
+      including the admin. No approval is required.
+    </p>
+
+    <form id="sharedExpenseForm">
+      <label>Expense description</label>
+      <input
+        id="sharedDesc"
+        type="text"
+        placeholder="Wi-Fi, electricity, rent, etc."
+        maxlength="160"
+        required
+      >
+
+      <label>Combined amount (AED)</label>
+      <input
+        id="sharedAmount"
+        type="number"
+        min="0.01"
+        step="0.01"
+        required
+      >
+
+      <label>Expense date</label>
+      <input id="sharedDate" type="date" required>
+
+      <div class="actions">
+        <button type="submit">Save Room Expense</button>
+      </div>
+    </form>
+
+    <div id="sharedExpenseMsg" class="notice hidden"></div>
+
+    <h3>Recorded Room Expenses</h3>
+    <div id="sharedExpenseRecords">Loading…</div>
+  </div>
+</section>
+
 <section id="recordsView" class="hidden">
   <div class="card">
     <h2>My Records</h2>
