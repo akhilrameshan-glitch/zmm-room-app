@@ -129,7 +129,7 @@
   </div>
 </section>
 
-<section id="recordsView" class="hidden">
+  <section id="recordsView" class="hidden">
   <div class="card">
     <h2>My Records</h2>
     <div id="records">Loading…</div>
@@ -301,74 +301,115 @@ if (balanceResult.error) {
   }
 }
 
-  // Get approved roommate accounts.
-  const people = await sb.from("profiles")
-    .select("id,display_name")
-    .in("role", ["roommate", "admin"])
-    .eq("account_status", "approved");
+ 
+}
 
-  if (people.error) {
-    $("balances").textContent =
-      "Could not load roommates: " + people.error.message;
+async function loadSharedExpenses() {
+  const list = $("sharedExpenseRecords");
+  list.textContent = "Loading…";
+
+  const result = await sb
+    .from("shared_expenses")
+    .select("id, description, amount, expense_date")
+    .order("expense_date", { ascending: false });
+
+  if (result.error) {
+    list.textContent = "Could not load expenses: " + result.error.message;
     return;
   }
 
-  const roommates = people.data || [];
+  const summary = await sb.rpc("get_shared_expense_summary");
 
-  if (!roommates.length) {
-    $("balances").textContent = "No approved roommates found.";
+  if (summary.error) {
+    list.textContent = "Could not load expense summary: " + summary.error.message;
     return;
   }
 
-  const expenses = allExpenses.data || [];
-  const total = expenses.reduce(
-    (sum, x) => sum + Number(x.amount), 0
-  );
-  const share = total / roommates.length;
+  const totals = summary.data?.[0] || {};
+  const expenses = result.data || [];
 
-  const balances = roommates.map(p => {
-    const paid = expenses
-      .filter(x => x.submitted_by === p.id)
-      .reduce((sum, x) => sum + Number(x.amount), 0);
-
-    return {
-      name: p.display_name || "Roommate",
-      paid,
-      balance: paid - share
-    };
-  });
-
-  $("balances").innerHTML = `
+  list.innerHTML = `
     <div class="item">
-      <b>Total approved expenses:</b> ${money(total)}
+      <b>Total shared expenses:</b>
+      ${money(totals.total_shared_expenses || 0)}
       <div class="muted">
-        Equal share per roommate: ${money(share)}
+        Approved roommates, including admin:
+        ${totals.approved_roommate_count || 0}
+      </div>
+      <div class="muted">
+        Equal share per person:
+        ${money(totals.equal_share_per_roommate || 0)}
       </div>
     </div>
-    ${balances.map(b => `
-      <div class="item">
-        <b>${esc(b.name)}</b>
-        <div class="muted">Paid: ${money(b.paid)}</div>
-        <div>
-          ${Math.abs(b.balance) < 0.01
-            ? "Settled"
-            : b.balance > 0
-              ? "Should receive: " + money(b.balance)
-              : "Owes: " + money(-b.balance)}
-        </div>
-      </div>
-    `).join("")}
-    <p class="muted">
-      These are net balances based on approved expenses.
-      Pending and rejected expenses are excluded.
-    </p>
+    ${
+      expenses.length
+        ? expenses.map(x => `
+            <div class="item">
+              <b>${esc(x.description)}</b> — ${money(x.amount)}
+              <div class="muted">${esc(x.expense_date || "")}</div>
+            </div>
+          `).join("")
+        : "<p>No shared expenses recorded yet.</p>"
+    }
   `;
 }
+
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 $("authForm").onsubmit=async e=>{e.preventDefault();$("submitAuth").disabled=true;clear("authMsg");try{let email=$("email").value.trim(),password=$("password").value;if(mode==="signup"){if(password!==$("password2").value)throw Error("Passwords do not match.");let r=await sb.auth.signUp({email,password,options:{data:{display_name:$("name").value.trim()}}});if(r.error)throw r.error;if(r.data.session)await showSession(r.data.session);else msg("authMsg","Registration successful. You can now sign in with your email and password. If email confirmation is required, check your inbox and confirm your email address before signing in., follow its verification step. If SMS is unavailable, we must switch to a supported no-SMS login method.","success")}else{let r=await sb.auth.signInWithPassword({email,password});if(r.error)throw r.error;await showSession(r.data.session)}}catch(err){msg("authMsg",err.message||"Authentication failed.","error")}finally{$("submitAuth").disabled=false}};
+
+$("sharedExpenseForm").onsubmit = async e => {
+  e.preventDefault();
+
+  const button = $("sharedExpenseForm").querySelector(
+    'button[type="submit"]'
+  );
+  button.disabled = true;
+
+  const message = $("sharedExpenseMsg");
+  message.classList.add("hidden");
+
+  try {
+    if (!user || profile?.role !== "admin" ||
+        profile?.account_status !== "approved") {
+      throw new Error("Only an approved admin can record room expenses.");
+    }
+
+    const description = $("sharedDesc").value.trim();
+    const amount = Number($("sharedAmount").value);
+    const expenseDate = $("sharedDate").value;
+
+    if (!description || !Number.isFinite(amount) ||
+        amount <= 0 || !expenseDate) {
+      throw new Error("Please enter a description, valid amount, and date.");
+    }
+
+    const result = await sb.from("shared_expenses").insert({
+      description,
+      amount,
+      expense_date: expenseDate,
+      created_by: user.id
+    });
+
+    if (result.error) throw result.error;
+
+    $("sharedExpenseForm").reset();
+    $("sharedDate").value = new Date().toISOString().slice(0, 10);
+
+    message.textContent = "Room expense saved successfully.";
+    message.classList.remove("hidden");
+
+    await loadSharedExpenses();
+  } catch (err) {
+    message.textContent = err.message || "Could not save room expense.";
+    message.classList.remove("hidden");
+  } finally {
+    button.disabled = false;
+  }
+};
+
 $("refresh").onclick=async()=>{if(!user)return;let r=await sb.from("profiles").select("*").eq("id",user.id).maybeSingle();if(r.error)msg("pendingMsg",r.error.message,"error");else if(r.data?.account_status==="approved")await showSession({user});else msg("pendingMsg",r.data?"Account status: "+r.data.account_status:"Profile not found. Contact administrator.")};
 $("logout").onclick=logout;$("logout2").onclick=logout;$("reload").onclick=loadRecords;$("date").value=new Date().toISOString().slice(0,10);
-
+$("sharedDate").value = new Date().toISOString().slice(0,10);
 function showAppTab(tab) {
   const isAdmin = profile?.role === "admin";
 
@@ -416,25 +457,6 @@ const sharedTab = $("sharedExpensesTab");
 if (sharedTab) {
   sharedTab.onclick = () => showAppTab("shared");
 }
-
-function showAppTab(tab) {
-  const views = {
-    home: $("homeView"),
-    submit: $("submitView"),
-    records: $("recordsView")
-  };
-
-  Object.entries(views).forEach(([name, element]) => {
-    element.classList.toggle("hidden", name !== tab);
-  });
-
-  $("homeTab").classList.toggle("secondary", tab !== "home");
-  $("submitTab").classList.toggle("secondary", tab !== "submit");
-  $("recordsTab").classList.toggle("secondary", tab !== "records");
-
-  if (tab === "records") loadRecords();
-}
-
 $("homeTab").onclick = () => showAppTab("home");
 $("submitTab").onclick = () => showAppTab("submit");
 $("recordsTab").onclick = () => showAppTab("records");
