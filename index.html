@@ -171,23 +171,31 @@ async function loadRecords() {
   );
   $("approvedCount").textContent = approved.length;
 
-  $("records").innerHTML = a.length
-    ? a.map(x => `
-      <div class="item">
-        <b>${esc(x.description)}</b> — <b>${money(x.amount)}</b>
-        <div class="muted">
-          ${esc(x.expense_date || "")} ·
-          ${esc(x.category || "Other")} ·
-          ${esc(x.payment_method || "")}
-        </div>
-        <span class="pill ${esc(x.status)}">${esc(x.status)}</span>
-        ${x.receipt_path
-          ? `<button type="button" data-receipt="${esc(x.receipt_path)}">View receipt</button>`
-          : ""}
-      </div>
-    `).join("")
-    : "No records yet.";
 
+const visibleRecords = profile?.role === "admin"
+  ? a
+  : a.filter(x => x.submitted_by === user.id);
+
+$("records").innerHTML = visibleRecords.length
+  ? visibleRecords.map(x => `
+    <div class="item">
+      <b>${esc(x.description)}</b> — <b>${money(x.amount)}</b>
+      <div class="muted">
+        ${esc(x.expense_date || "")} ·
+        ${esc(x.category || "Other")} ·
+        ${esc(x.payment_method || "")}
+      </div>
+      <span class="pill ${esc(x.status)}">${esc(x.status)}</span>
+      ${profile?.role === "admin"
+        ? `<div class="muted">Submitted by: ${esc(x.submitted_by)}</div>`
+        : ""}
+      ${x.receipt_path
+        ? `<button type="button" data-receipt="${esc(x.receipt_path)}">View receipt</button>`
+        : ""}
+    </div>
+  `).join("")
+  : "No records to display.";
+    : "No records yet.";
   // Load all approved expenses for the balance calculation.
   const allExpenses = await sb.from("expenses")
     .select("amount,submitted_by")
@@ -198,11 +206,10 @@ async function loadRecords() {
       "Could not calculate balances: " + allExpenses.error.message;
     return;
   }
-
   // Get approved roommate accounts.
   const people = await sb.from("profiles")
     .select("id,display_name")
-    .eq("role", "roommate")
+    .in("role", ["roommate", "admin"])
     .eq("account_status", "approved");
 
   if (people.error) {
