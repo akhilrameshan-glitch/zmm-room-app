@@ -15,8 +15,86 @@
   <div id="balances">Balances will appear here.</div>
 </section>
 
-<div class="cols"><section class="card"><h2>Submit expense</h2>
-<form id="expenseForm"><label>Description</label><input id="desc" required maxlength="160"><label>Amount (AED)</label><input id="amount" type="number" min=".01" step=".01" required><label>Category</label><select id="category"><option>Groceries</option><option>Utilities</option><option>Rent</option><option>Cleaning</option><option>Maintenance</option><option>Internet</option><option>Other</option></select><label>Date</label><input id="date" type="date" required><label>Payment method</label><select id="payment"><option>Cash</option><option>Bank transfer</option><option>Credit card</option><option>Debit card</option><option>Other</option></select><label>Receipt file (not active yet)</label><input id="receipt" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"><p class="muted">Private receipt storage must be configured before uploads can be enabled.</p><div class="actions"><button>Submit for approval</button></div></form><div id="expenseMsg" class="notice hidden"></div></section><section class="card"><h2>Expense records</h2><div id="records">Loading…</div><div class="actions"><button id="reload" class="secondary" type="button">Refresh records</button></div></section></div>
+
+<div class="tabs">
+  <button type="button" id="homeTab">Home</button>
+  <button type="button" id="submitTab" class="secondary">Submit Expense</button>
+  <button type="button" id="recordsTab" class="secondary">My Records</button>
+</div>
+
+<section id="homeView">
+  <div class="grid">
+    <div class="stat">
+      <small>Total approved bills</small>
+      <strong id="approvedTotal">⃃ 0.00</strong>
+    </div>
+    <div class="stat">
+      <small>My pending bills</small>
+      <strong id="pendingTotal">⃃ 0.00</strong>
+    </div>
+    <div class="stat">
+      <small>Approved bill count</small>
+      <strong id="approvedCount">0</strong>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Roommate Balances</h2>
+    <div id="balances">Loading balances…</div>
+  </div>
+  <div class="card">
+    <h2>Roommate Bill Overview</h2>
+    <div id="roommateOverview">Loading overview…</div>
+  </div>
+</section>
+
+<section id="submitView" class="hidden">
+  <div class="card">
+    <h2>Submit Expense</h2>
+    <form id="expenseForm">
+      <label>Description</label>
+      <input id="desc" required maxlength="160">
+      <label>Amount (AED)</label>
+      <input id="amount" type="number" min=".01" step=".01" required>
+      <label>Category</label>
+      <select id="category">
+        <option>Groceries</option>
+        <option>Utilities</option>
+        <option>Rent</option>
+        <option>Cleaning</option>
+        <option>Maintenance</option>
+        <option>Internet</option>
+        <option>Other</option>
+      </select>
+      <label>Date</label>
+      <input id="date" type="date" required>
+      <label>Payment method</label>
+      <select id="payment">
+        <option>Cash</option>
+        <option>Bank transfer</option>
+        <option>Credit card</option>
+        <option>Debit card</option>
+        <option>Other</option>
+      </select>
+      <label>Receipt file</label>
+      <input id="receipt" type="file" accept="image/jpeg,image/png,image/webp,application/pdf">
+      <div class="actions">
+        <button type="submit">Submit for approval</button>
+      </div>
+    </form>
+    <div id="expenseMsg" class="notice hidden"></div>
+  </div>
+</section>
+
+<section id="recordsView" class="hidden">
+  <div class="card">
+    <h2>My Records</h2>
+    <div id="records">Loading…</div>
+    <div class="actions">
+      <button id="reload" class="secondary" type="button">Refresh records</button>
+    </div>
+  </div>
+</section>
+
 
 <section id="admin" class="card hidden">
   <h2>Administrator Panel</h2>
