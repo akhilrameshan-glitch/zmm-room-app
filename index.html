@@ -197,15 +197,54 @@ $("records").innerHTML = visibleRecords.length
   : "No records to display.";
     : "No records yet.";
   // Load all approved expenses for the balance calculation.
-  const allExpenses = await sb.from("expenses")
-    .select("amount,submitted_by")
-    .eq("status", "approved");
+  
+const balanceResult = await sb.rpc("get_room_balances");
 
-  if (allExpenses.error) {
-    $("balances").textContent =
-      "Could not calculate balances: " + allExpenses.error.message;
-    return;
+if (balanceResult.error) {
+  $("balances").textContent =
+    "Could not calculate balances: " + balanceResult.error.message;
+} else {
+  const balances = balanceResult.data || [];
+
+  if (!balances.length) {
+    $("balances").textContent = "No approved roommates found.";
+  } else {
+    const total = balances.reduce(
+      (sum, b) => sum + Number(b.total_paid), 0
+    );
+
+    const share = Number(balances[0].equal_share || 0);
+
+    $("balances").innerHTML = `
+      <div class="item">
+        <b>Total approved expenses:</b> ${money(total)}
+        <div class="muted">
+          Equal share per roommate: ${money(share)}
+        </div>
+      </div>
+      ${balances.map(b => `
+        <div class="item">
+          <b>${esc(b.roommate_name)}</b>
+          <div class="muted">
+            Paid: ${money(b.total_paid)}
+          </div>
+          <div>
+            ${Math.abs(Number(b.net_balance)) < 0.01
+              ? "Settled"
+              : Number(b.net_balance) > 0
+                ? "Should receive: " + money(b.net_balance)
+                : "Owes: " + money(-Number(b.net_balance))}
+          </div>
+        </div>
+      `).join("")}
+      <p class="muted">
+        Based on approved expenses only. Pending and rejected expenses
+        are excluded.
+      </p>
+    `;
   }
+}
+
   // Get approved roommate accounts.
   const people = await sb.from("profiles")
     .select("id,display_name")
