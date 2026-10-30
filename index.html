@@ -1,99 +1,456 @@
+
 <!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#123b35">
+<meta name="theme-color" content="#123b5d">
 <link rel="manifest" href="./manifest.json">
 <title>ZMM Room App</title>
 <style>
-:root{--g:#123b35;--m:#e6f3ee;--ink:#1d2927;--line:#dce5e1}
-*{box-sizing:border-box}body{margin:0;background:#f4f7f5;color:var(--ink);font:16px system-ui}
-header{background:var(--g);color:white;padding:22px}header h1{margin:0}header p{margin:5px 0;color:#d7e7e1}
-main{max-width:850px;margin:auto;padding:16px}.card{background:white;border:1px solid var(--line);border-radius:15px;padding:18px;margin-bottom:14px}
-h2{font-size:19px;margin-top:0}.muted{font-size:14px;color:#66736f}label{display:block;font-size:13px;font-weight:650;margin:12px 0 5px}
-input,select{font:inherit;width:100%;padding:12px;border:1px solid #cbd8d2;border-radius:9px}
-button{font:inherit;font-weight:650;border:0;border-radius:9px;padding:12px 15px;background:var(--g);color:white;cursor:pointer}
-button:disabled{opacity:.55;cursor:wait}.secondary{background:var(--m);color:var(--g)}
-.tabs,.actions{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}.tabs button{flex:1}
-.notice{padding:12px;border-radius:9px;background:#fff1c9;color:#694f00;margin:12px 0;font-size:14px}
-.error{background:#fde8e8;color:#8a2020}.success{background:#e3f5e9;color:#175d34}.hidden{display:none!important}
-.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.stat{background:var(--m);padding:14px;border-radius:10px;min-width:0}.stat small{display:block}.stat strong{font-size:21px;overflow-wrap:anywhere}
-.item{border-top:1px solid var(--line);padding:12px 0}.pill{font-size:12px;background:#fff1c9;padding:3px 8px;border-radius:20px}.pill.approved{background:#e3f5e9}.pill.rejected{background:#fde8e8}
-@media(max-width:520px){.grid{grid-template-columns:1fr}.tabs button{flex-basis:42%}}
+:root{
+  --navy:#123b5d;
+  --navy2:#263b60;
+  --teal:#176b72;
+  --mint:#e4f5ed;
+  --bg:#f4f7fa;
+  --ink:#233747;
+  --muted:#718096;
+  --line:#e1e8ef;
+  --amber:#fff0d9;
+  --green:#176b43;
+  --red:#b42318;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font:15px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+header{
+  background:linear-gradient(120deg,var(--navy),var(--teal));
+  color:white;
+  padding:22px 18px;
+}
+header h1{margin:0;font-size:25px}
+header p{margin:5px 0 0;color:#d8eaf0}
+main{max-width:1050px;margin:auto;padding:16px}
+.card{
+  background:white;
+  border:1px solid var(--line);
+  border-radius:17px;
+  padding:18px;
+  margin-bottom:15px;
+  box-shadow:0 3px 12px rgba(30,55,75,.035);
+}
+h2{font-size:19px;margin:0 0 12px;color:var(--navy)}
+h3{font-size:16px;color:var(--navy);margin:18px 0 9px}
+p{line-height:1.5}
+.muted{font-size:13px;color:var(--muted)}
+label{display:block;font-size:13px;font-weight:650;margin:13px 0 5px}
+input,select{
+  font:inherit;width:100%;padding:12px;
+  border:1px solid #cbd7e2;border-radius:10px;background:white;color:var(--ink)
+}
+button{
+  font:inherit;font-weight:650;border:0;border-radius:10px;
+  padding:11px 15px;background:var(--navy);color:white;cursor:pointer
+}
+button:disabled{opacity:.55;cursor:wait}
+button.secondary{background:#e7f1f3;color:var(--teal)}
+button.danger{background:#fde8e7;color:var(--red)}
+.tabs,.actions{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
+.tabs button{flex:1;min-width:105px}
+.notice{padding:12px;border-radius:10px;background:#fff1c9;color:#694f00;margin:12px 0;font-size:14px}
+.notice.error{background:#fde8e8;color:#8a2020}
+.notice.success{background:#e3f5e9;color:#175d34}
+.hidden{display:none!important}
+.grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px
+}
+.stat{padding:16px;border-radius:13px;min-width:0}
+.stat small{display:block;font-size:12px;line-height:1.4}
+.stat strong{display:block;font-size:21px;margin-top:6px;overflow-wrap:anywhere}
+.stat.green{background:#e4f5ed;color:#155b3b}
+.stat.amber{background:#fff0d9;color:#8c4b08}
+.stat.blue{background:#e8f0fb;color:#244c7b}
+.stat.teal{background:#e3f4f3;color:#176b72}
+.section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.table-wrap{width:100%;overflow-x:auto;border:1px solid var(--line);border-radius:12px;margin-top:10px}
+table{border-collapse:collapse;width:100%;min-width:570px;font-size:13px}
+th{background:var(--navy2);color:white;text-align:left;padding:12px 10px;white-space:nowrap}
+td{padding:11px 10px;border-bottom:1px solid var(--line)}
+tr:nth-child(even) td{background:#f2faf8}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right;white-space:nowrap}
+.balance-owe{color:#a65a08;font-weight:750;background:#fff0d9!important}
+.balance-credit{color:#176b43;font-weight:750;background:#e4f5ed!important}
+.balance-zero{color:#526274;font-weight:700;background:#eef2f6!important}
+.pill{display:inline-block;font-size:11px;background:#fff1c9;padding:4px 9px;border-radius:20px}
+.pill.approved{background:#e3f5e9;color:#176b43}
+.pill.rejected{background:#fde8e8;color:#a32323}
+.item{border-top:1px solid var(--line);padding:12px 0}
+.item:first-child{border-top:0}
+.dashboard-chart{
+ display:grid;grid-template-columns:minmax(180px,240px) 1fr;
+ align-items:center;gap:22px;margin-top:15px
+}
+.donut{
+ width:100%;max-width:225px;aspect-ratio:1;border-radius:50%;
+ margin:auto;position:relative;
+ background:conic-gradient(#176b72 0 30%,#4a91c7 30% 52%,#e5a64b 52% 68%,#81b99b 68% 83%,#a68ac4 83% 93%,#d4a5a0 93% 100%);
+}
+.donut:after{
+ content:"";position:absolute;inset:24%;border-radius:50%;
+ background:white;box-shadow:inset 0 0 0 1px #edf1f4
+}
+.donut-center{
+ position:absolute;inset:0;z-index:1;display:flex;
+ flex-direction:column;align-items:center;justify-content:center;text-align:center;
+ pointer-events:none
+}
+.donut-center strong{font-size:20px;color:var(--navy);max-width:90%;overflow-wrap:anywhere}
+.donut-center small{font-size:11px;color:var(--muted)}
+.legend{display:grid;gap:9px}
+.legend-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px}
+.legend-name{display:flex;align-items:center;gap:8px;min-width:0}
+.legend-name span:last-child{overflow-wrap:anywhere}
+.dot{width:11px;height:11px;border-radius:4px;flex:none}
+.empty{padding:17px;text-align:center;color:var(--muted);font-size:13px}
+.small-note{font-size:12px;color:var(--muted);line-height:1.5;margin-top:10px}
+footer{text-align:center;padding:10px 20px 25px;color:var(--muted);font-size:12px}
+@media(max-width:620px){
+ main{padding:11px}
+ .card{padding:14px}
+ .grid{grid-template-columns:1fr 1fr}
+ .stat strong{font-size:18px}
+ .dashboard-chart{grid-template-columns:1fr;gap:14px}
+ .donut{max-width:190px}
+ .legend{grid-template-columns:1fr 1fr;gap:8px}
+}
+@media(max-width:390px){.grid{grid-template-columns:1fr}.legend{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<header><h1>ZMM Room App</h1><p>Shared room expenses · AED</p></header>
+
+<header>
+  <h1>ZMM Room App</h1>
+  <p>Shared room expenses · AED</p>
+</header>
+
 <main>
 <div id="setup" class="notice hidden"></div>
+
 <section id="auth" class="card">
-<h2>Welcome</h2><p class="muted">Register or sign in with your email and password. New accounts need administrator approval.</p>
-<div class="tabs"><button id="loginTab" type="button" class="secondary">Login</button><button id="signupTab" type="button">Register</button></div>
-<form id="authForm">
-<div id="nameBox"><label>Your name</label><input id="name" maxlength="80" autocomplete="name" required></div>
-<label>Email address</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com" required>
-<label>Password (minimum 8 characters)</label><input id="password" type="password" minlength="8" autocomplete="current-password" required>
-<div id="confirmBox"><label>Confirm password</label><input id="password2" type="password" minlength="8" autocomplete="new-password" required></div>
-<div class="actions"><button id="submitAuth" type="submit">Create account</button></div>
-</form><div id="authMsg" class="notice hidden"></div>
-<p class="muted">No SMS is used. Use email and password only.</p>
+  <h2>Welcome</h2>
+  <p class="muted">Register or sign in with your email and password. New accounts need administrator approval.</p>
+  <div class="tabs">
+    <button id="loginTab" type="button" class="secondary">Login</button>
+    <button id="signupTab" type="button">Register</button>
+  </div>
+  <form id="authForm">
+    <div id="nameBox">
+      <label>Your name</label>
+      <input id="name" maxlength="80" autocomplete="name" required>
+    </div>
+    <label>Email address</label>
+    <input id="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+    <label>Password (minimum 8 characters)</label>
+    <input id="password" type="password" minlength="8" autocomplete="current-password" required>
+    <div id="confirmBox">
+      <label>Confirm password</label>
+      <input id="password2" type="password" minlength="8" autocomplete="new-password" required>
+    </div>
+    <div class="actions"><button id="submitAuth" type="submit">Create account</button></div>
+  </form>
+  <div id="authMsg" class="notice hidden"></div>
+  <p class="muted">No SMS is used. Use email and password only.</p>
 </section>
-<section id="pending" class="card hidden"><h2>Awaiting approval</h2><p>Your account is not approved yet. You cannot submit expenses until an administrator approves it.</p>
-<div class="actions"><button id="refresh" type="button">Check status</button><button id="logout2" class="secondary" type="button">Log out</button></div><div id="pendingMsg" class="notice hidden"></div></section>
+
+<section id="pending" class="card hidden">
+  <h2>Awaiting approval</h2>
+  <p>Your account is not approved yet. You cannot submit expenses until an administrator approves it.</p>
+  <div class="actions">
+    <button id="refresh" type="button">Check status</button>
+    <button id="logout2" class="secondary" type="button">Log out</button>
+  </div>
+  <div id="pendingMsg" class="notice hidden"></div>
+</section>
+
 <section id="app" class="hidden">
-<div class="card"><div class="actions" style="justify-content:space-between;align-items:center"><div><h2 id="hello">Dashboard</h2><div id="who" class="muted"></div></div><button id="logout" class="secondary" type="button">Log out</button></div>
-<div class="grid"><div class="stat"><small>Total approved personal expenses</small><strong id="approvedTotal">AED 0.00</strong></div><div class="stat"><small>My pending expenses</small><strong id="pendingTotal">AED 0.00</strong></div><div class="stat"><small>Approved records</small><strong id="approvedCount">0</strong></div></div></div>
-<div class="tabs">
-<button type="button" id="homeTab">Home</button><button type="button" id="submitTab" class="secondary">Submit Expense</button><button type="button" id="recordsTab" class="secondary">My Records</button><button type="button" id="sharedExpensesTab" class="secondary hidden">Room Expenses</button>
-</div>
-<section id="homeView">
-<div class="card"><h2>Roommate Balances</h2><p class="muted">Balances include approved personal expenses and recorded shared bills that are still outstanding. Pending/rejected personal expenses are excluded.</p><div id="balances">Loading balances…</div></div>
-<div class="card"><h2>Roommate Bill Overview</h2><div id="roommateOverview">Balance details will appear above.</div></div>
-</section>
-<section id="submitView" class="hidden"><div class="card"><h2>Submit Expense</h2>
-<form id="expenseForm">
-<label>Description</label><input id="desc" required maxlength="160">
-<label>Amount (AED)</label><input id="amount" type="number" min="0.01" step="0.01" required>
-<label>Category</label><select id="category"><option>Groceries</option><option>Utilities</option><option>Rent</option><option>Cleaning</option><option>Maintenance</option><option>Internet</option><option>Other</option></select>
-<label>Date</label><input id="date" type="date" required>
-<label>Payment method</label><select id="payment"><option>Cash</option><option>Bank transfer</option><option>Credit card</option><option>Debit card</option><option>Other</option></select>
-<label>Receipt file (JPEG, PNG, WebP, or PDF; max 5 MB)</label><input id="receipt" type="file" accept="image/jpeg,image/png,image/webp,application/pdf">
-<div class="actions"><button type="submit">Submit for approval</button></div></form><div id="expenseMsg" class="notice hidden"></div></div></section>
-<section id="recordsView" class="hidden"><div class="card"><h2>Expense Records</h2><div id="records">Loading…</div><div class="actions"><button id="reload" class="secondary" type="button">Refresh records</button></div></div></section>
-<section id="sharedExpensesView" class="hidden"><div class="card"><h2>Outstanding Room Expenses</h2><p class="muted">Record the total amount for a shared bill (for example, Wi-Fi, electricity, or rent) that has not yet been paid. The amount is divided equally among all approved roommates, including the admin. It is not treated as money already paid by the admin.</p>
-<form id="sharedExpenseForm"><label>Expense description</label><input id="sharedDesc" type="text" placeholder="Wi-Fi, electricity, rent, etc." maxlength="160" required>
-<label>Combined amount (AED)</label><input id="sharedAmount" type="number" min="0.01" step="0.01" required>
-<label>Expense date</label><input id="sharedDate" type="date" required><div class="actions"><button type="submit">Save Room Expense</button></div></form>
-<div id="sharedExpenseMsg" class="notice hidden"></div><h3>Recorded Outstanding Bills</h3><div id="sharedExpenseRecords">Loading…</div></div></section>
-<section id="admin" class="card hidden"><h2>Administrator Panel</h2><h3>Roommate Accounts</h3><p class="muted">Approve or reject new registrations.</p><div id="adminUsers">Loading accounts…</div><h3>Pending Expenses</h3><p class="muted">Review submitted personal expenses.</p><div id="adminExpenses">Loading expenses…</div><div class="actions"><button id="adminRefresh" type="button">Refresh admin panel</button></div><div id="adminMsg" class="notice hidden"></div></section>
+  <div class="card">
+    <div class="actions" style="justify-content:space-between;align-items:center">
+      <div>
+        <h2 id="hello">Dashboard</h2>
+        <div id="who" class="muted"></div>
+      </div>
+      <button id="logout" class="secondary" type="button">Log out</button>
+    </div>
+    <div class="grid">
+      <div class="stat green">
+        <small>Total approved personal expenses</small>
+        <strong id="approvedTotal">AED 0.00</strong>
+      </div>
+      <div class="stat amber">
+        <small>My pending expenses</small>
+        <strong id="pendingTotal">AED 0.00</strong>
+      </div>
+      <div class="stat blue">
+        <small>Approved records</small>
+        <strong id="approvedCount">0</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button type="button" id="homeTab">Home</button>
+    <button type="button" id="submitTab" class="secondary">Submit Expense</button>
+    <button type="button" id="recordsTab" class="secondary">My Records</button>
+    <button type="button" id="sharedExpensesTab" class="secondary hidden">Room Expenses</button>
+  </div>
+
+  <section id="homeView">
+    <div class="card">
+      <div class="section-title">
+        <h2>Room Expense Dashboard</h2>
+        <button type="button" id="refreshDashboard" class="secondary">Refresh</button>
+      </div>
+      <div class="grid">
+        <div class="stat teal">
+          <small>Approved personal expenses</small>
+          <strong id="dashPersonal">AED 0.00</strong>
+        </div>
+        <div class="stat amber">
+          <small>Outstanding shared bills</small>
+          <strong id="dashShared">AED 0.00</strong>
+        </div>
+        <div class="stat blue">
+          <small>Total cost being shared</small>
+          <strong id="dashCombined">AED 0.00</strong>
+        </div>
+      </div>
+      <div class="grid" style="margin-top:10px">
+        <div class="stat green">
+          <small>Equal share per person</small>
+          <strong id="dashShare">AED 0.00</strong>
+        </div>
+        <div class="stat blue">
+          <small>Approved roommates</small>
+          <strong id="dashPeople">0</strong>
+        </div>
+        <div class="stat amber">
+          <small>My balance (Share − Paid)</small>
+          <strong id="myBalance">AED 0.00</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Expenses by Category</h2>
+      <p class="muted">Approved personal expenses plus outstanding shared room bills.</p>
+      <div class="dashboard-chart">
+        <div style="position:relative">
+          <div id="donut" class="donut"></div>
+          <div class="donut-center">
+            <small>Total expenses</small>
+            <strong id="donutTotal">AED 0</strong>
+            <small>All categories</small>
+          </div>
+        </div>
+        <div id="chartLegend" class="legend">
+          <div class="empty">Loading chart…</div>
+        </div>
+      </div>
+      <p class="small-note">Only approved personal expenses are included. Shared room bills are included as outstanding costs. Pending and rejected personal expenses are excluded.</p>
+    </div>
+
+    <div class="card">
+      <h2>Category-wise Expense Summary</h2>
+      <p class="muted">Each category is divided equally among all approved roommates, including the admin.</p>
+      <div id="categoryTable"><div class="empty">Loading categories…</div></div>
+    </div>
+
+    <div class="card">
+      <h2>Roommate Balance Table</h2>
+      <p class="muted">Balance = Equal Share − Approved Personal Expenses Paid. Positive means amount owed; negative means paid extra.</p>
+      <div id="balances"><div class="empty">Loading balances…</div></div>
+      <p class="small-note">Outstanding shared bills are included in each person's share. They are not treated as money already paid by the admin. Confirm actual payments before settling balances.</p>
+    </div>
+
+    <div class="card">
+      <h2>Roommate Bill Overview</h2>
+      <div id="roommateOverview">Balance details will appear above.</div>
+    </div>
+  </section>
+
+  <section id="submitView" class="hidden">
+    <div class="card">
+      <h2>Submit Personal Expense</h2>
+      <p class="muted">Use this section for bills you personally paid, such as food, groceries, gas, transport or other expenses. All submissions need admin approval.</p>
+      <form id="expenseForm">
+        <label>Description</label>
+        <input id="desc" required maxlength="160">
+        <label>Amount (AED)</label>
+        <input id="amount" type="number" min="0.01" step="0.01" required>
+        <label>Category</label>
+        <select id="category">
+          <option>Food & groceries</option>
+          <option>Cooking gas</option>
+          <option>Transport</option>
+          <option>Cleaning</option>
+          <option>Maintenance</option>
+          <option>Personal shopping</option>
+          <option>Other personal expense</option>
+        </select>
+        <label>Date</label>
+        <input id="date" type="date" required>
+        <label>Payment method</label>
+        <select id="payment">
+          <option>Cash</option>
+          <option>Bank transfer</option>
+          <option>Credit card</option>
+          <option>Debit card</option>
+          <option>Other</option>
+        </select>
+        <label>Receipt file (JPEG, PNG, WebP, or PDF; max 5 MB)</label>
+        <input id="receipt" type="file" accept="image/jpeg,image/png,image/webp,application/pdf">
+        <div class="actions">
+          <button type="submit">Submit for approval</button>
+        </div>
+      </form>
+      <div id="expenseMsg" class="notice hidden"></div>
+    </div>
+  </section>
+
+  <section id="recordsView" class="hidden">
+    <div class="card">
+      <h2>Expense Records</h2>
+      <div id="records">Loading…</div>
+      <div class="actions">
+        <button id="reload" class="secondary" type="button">Refresh records</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="sharedExpensesView" class="hidden">
+    <div class="card">
+      <h2>Outstanding Room Expenses</h2>
+      <p class="muted">Admin only. Record the total amount for a shared bill that has not yet been paid. The amount is divided equally among all approved roommates, including the admin. It is not treated as money already paid by the admin.</p>
+      <form id="sharedExpenseForm">
+        <label>Expense description</label>
+        <input id="sharedDesc" type="text" placeholder="Monthly Wi-Fi bill, rent, etc." maxlength="160" required>
+        <label>Category</label>
+        <select id="sharedCategory">
+          <option>Room rent</option>
+          <option>Wi-Fi / Internet</option>
+          <option>Water</option>
+          <option>Electricity</option>
+          <option>Cooking gas</option>
+          <option>Cleaning</option>
+          <option>Maintenance</option>
+          <option>Other shared bills</option>
+        </select>
+        <label>Combined amount (AED)</label>
+        <input id="sharedAmount" type="number" min="0.01" step="0.01" required>
+        <label>Expense date</label>
+        <input id="sharedDate" type="date" required>
+        <div class="actions"><button type="submit">Save Room Expense</button></div>
+      </form>
+      <div id="sharedExpenseMsg" class="notice hidden"></div>
+      <h3>Recorded Outstanding Bills</h3>
+      <div id="sharedExpenseRecords">Loading…</div>
+    </div>
+  </section>
+
+  <section id="admin" class="card hidden">
+    <h2>Administrator Panel</h2>
+    <h3>Roommate Accounts</h3>
+    <p class="muted">Approve or reject new registrations.</p>
+    <div id="adminUsers">Loading accounts…</div>
+    <h3>Pending Expenses</h3>
+    <p class="muted">Review submitted personal expenses.</p>
+    <div id="adminExpenses">Loading expenses…</div>
+    <div class="actions"><button id="adminRefresh" type="button">Refresh admin panel</button></div>
+    <div id="adminMsg" class="notice hidden"></div>
+  </section>
 </section>
 </main>
-<footer class="muted" style="text-align:center;padding:10px 20px 25px">Test carefully before entering important financial data.</footer>
+
+<footer>Test carefully before entering important financial data.</footer>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
 "use strict";
+
 const SUPABASE_URL="https://foazsjrksijmdjxyefni.supabase.co";
 const KEY="sb_publishable_ct8j1of2fZHmLUTutXA9tg_98UA70cB";
 const $=id=>document.getElementById(id);
+
 let sb,mode="signup",user=null,profile=null;
+let currentBalances=[];
+
+const COLORS=["#176b72","#4a91c7","#e5a64b","#81b99b","#a68ac4","#d4a5a0","#8c9bb5","#d17c45"];
 const money=n=>"AED "+Number(n||0).toLocaleString("en-AE",{minimumFractionDigits:2,maximumFractionDigits:2});
-function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function msg(id,s,type=""){const e=$(id);e.textContent=s;e.className="notice "+type;e.classList.remove("hidden")}
+const today=()=>new Date().toLocaleDateString("en-CA");
+
+function esc(s){
+ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function msg(id,s,type=""){
+ const e=$(id);e.textContent=s;e.className="notice "+type;e.classList.remove("hidden");
+}
 function clear(id){$(id).classList.add("hidden")}
-function setMode(m){mode=m;const signup=m==="signup";$("nameBox").classList.toggle("hidden",!signup);$("confirmBox").classList.toggle("hidden",!signup);$("name").required=signup;$("password2").required=signup;$("submitAuth").textContent=signup?"Create account":"Login";$("loginTab").classList.toggle("secondary",signup);$("signupTab").classList.toggle("secondary",!signup);clear("authMsg")}
-$("loginTab").onclick=()=>setMode("login");$("signupTab").onclick=()=>setMode("signup");
-function showAuth(){$("auth").classList.remove("hidden");$("pending").classList.add("hidden");$("app").classList.add("hidden")}
-async function logout(){await sb.auth.signOut();user=null;profile=null;showAuth()}
-async function openReceipt(path){if(!path||!user)return;const r=await sb.storage.from("receipts").createSignedUrl(path,60);if(r.error){alert("Could not open receipt: "+r.error.message);return}window.open(r.data.signedUrl,"_blank","noopener,noreferrer")}
+
+function setMode(m){
+ mode=m;
+ const signup=m==="signup";
+ $("nameBox").classList.toggle("hidden",!signup);
+ $("confirmBox").classList.toggle("hidden",!signup);
+ $("name").required=signup;
+ $("password2").required=signup;
+ $("submitAuth").textContent=signup?"Create account":"Login";
+ $("loginTab").classList.toggle("secondary",signup);
+ $("signupTab").classList.toggle("secondary",!signup);
+ clear("authMsg");
+}
+$("loginTab").onclick=()=>setMode("login");
+$("signupTab").onclick=()=>setMode("signup");
+
+function showAuth(){
+ $("auth").classList.remove("hidden");
+ $("pending").classList.add("hidden");
+ $("app").classList.add("hidden");
+}
+async function logout(){
+ await sb.auth.signOut();
+ user=null;profile=null;showAuth();
+}
+async function openReceipt(path){
+ if(!path||!user)return;
+ const r=await sb.storage.from("receipts").createSignedUrl(path,60);
+ if(r.error){alert("Could not open receipt: "+r.error.message);return}
+ window.open(r.data.signedUrl,"_blank","noopener,noreferrer");
+}
+
 async function showSession(session){
  user=session.user;
  $("auth").classList.add("hidden");
  const r=await sb.from("profiles").select("*").eq("id",user.id).maybeSingle();
- if(r.error){$("pending").classList.remove("hidden");$("app").classList.add("hidden");msg("pendingMsg","Could not load profile: "+r.error.message,"error");return}
+ if(r.error){
+  $("pending").classList.remove("hidden");
+  $("app").classList.add("hidden");
+  msg("pendingMsg","Could not load profile: "+r.error.message,"error");
+  return;
+ }
  profile=r.data;
- if(!profile||profile.account_status!=="approved"){$("pending").classList.remove("hidden");$("app").classList.add("hidden");return}
- $("pending").classList.add("hidden");$("app").classList.remove("hidden");
+ if(!profile||profile.account_status!=="approved"){
+  $("pending").classList.remove("hidden");
+  $("app").classList.add("hidden");
+  return;
+ }
+ $("pending").classList.add("hidden");
+ $("app").classList.remove("hidden");
  $("hello").textContent="Hello"+(profile.display_name?" "+profile.display_name:"");
  $("who").textContent=user.email||"";
  $("admin").classList.toggle("hidden",profile.role!=="admin");
@@ -101,116 +458,442 @@ async function showSession(session){
  await loadRecords();
  if(profile.role==="admin")await loadAdminPanel();
 }
+
 async function loadRecords(){
  if(!user||!profile)return;
- const r=await sb.from("expenses").select("id,description,amount,category,expense_date,payment_method,status,submitted_by,receipt_path,created_at").order("created_at",{ascending:false}).limit(200);
- if(r.error){$("records").textContent="Could not load records: "+r.error.message;return}
- const all=r.data||[],approved=all.filter(x=>x.status==="approved"),pending=all.filter(x=>x.status==="pending"&&x.submitted_by===user.id);
+
+ const r=await sb.from("expenses")
+  .select("id,description,amount,category,expense_date,payment_method,status,submitted_by,receipt_path,created_at")
+  .order("created_at",{ascending:false}).limit(500);
+
+ if(r.error){
+  $("records").textContent="Could not load records: "+r.error.message;
+  return;
+ }
+
+ const all=r.data||[];
+ const approved=all.filter(x=>x.status==="approved");
+ const pending=all.filter(x=>x.status==="pending"&&x.submitted_by===user.id);
+
  $("approvedTotal").textContent=money(approved.reduce((s,x)=>s+Number(x.amount),0));
  $("pendingTotal").textContent=money(pending.reduce((s,x)=>s+Number(x.amount),0));
  $("approvedCount").textContent=approved.length;
+
  const ids=[...new Set(all.map(x=>x.submitted_by).filter(Boolean))];
  const pr=ids.length?await sb.from("profiles").select("id,display_name").in("id",ids):{data:[]};
  const names=Object.fromEntries((pr.data||[]).map(p=>[p.id,p.display_name||"Roommate"]));
+
  const visible=profile.role==="admin"?all:all.filter(x=>x.submitted_by===user.id);
- $("records").innerHTML=visible.length?visible.map(x=>`<div class="item"><b>${esc(x.description)}</b> — <b>${money(x.amount)}</b><div class="muted">${esc(x.expense_date||"")} · ${esc(x.category||"Other")} · ${esc(x.payment_method||"")}</div><span class="pill ${esc(x.status)}">${esc(x.status)}</span>${profile.role==="admin"?`<div class="muted">Submitted by: ${esc(names[x.submitted_by]||"Unknown roommate")}</div>`:""}${x.receipt_path?`<div class="actions"><button type="button" data-receipt="${esc(x.receipt_path)}">View receipt</button></div>`:""}</div>`).join(""):"No records to display.";
- const br=await sb.rpc("get_room_balances");
- if(br.error){$("balances").textContent="Could not calculate balances: "+br.error.message;return}
- const rows=br.data||[];
- if(!rows.length){$("balances").textContent="No approved roommates found.";return}
- const totalPaid=rows.reduce((s,b)=>s+Number(b.total_paid||0),0);
- const totalCost=rows.reduce((s,b)=>s+Number(b.equal_share||0),0);
- const shared=await sb.from("shared_expenses").select("amount");
- const sharedTotal=(shared.data||[]).reduce((s,x)=>s+Number(x.amount||0),0);
- $("balances").innerHTML=`<div class="item"><b>Approved personal expenses paid/submitted:</b> ${money(totalPaid)}<div class="muted">Outstanding shared bills: ${money(sharedTotal)}</div><div class="muted">Total cost being shared: ${money(totalCost)}</div><div class="muted">Equal share per approved person: ${money(rows[0].equal_share||0)}</div></div>`+rows.map(b=>`<div class="item"><b>${esc(b.roommate_name)}</b><div class="muted">Approved personal expenses: ${money(b.total_paid)}</div><div>${Math.abs(Number(b.net_balance))<0.01?"Balanced":Number(b.net_balance)>0?"Should receive: "+money(b.net_balance):"Contribution owed: "+money(-Number(b.net_balance))}</div></div>`).join("")+`<p class="muted">Outstanding shared bills are included in the equal share but are not treated as already paid. Confirm actual payments before settling balances.</p>`;
- $("roommateOverview").textContent=`${rows.length} approved people share the costs. Outstanding shared bills currently total ${money(sharedTotal)}.`;
+ $("records").innerHTML=visible.length?visible.map(x=>`
+  <div class="item">
+   <b>${esc(x.description)}</b> — <b>${money(x.amount)}</b>
+   <div class="muted">${esc(x.expense_date||"")} · ${esc(x.category||"Other")} · ${esc(x.payment_method||"")}</div>
+   <span class="pill ${esc(x.status)}">${esc(x.status)}</span>
+   ${profile.role==="admin"?`<div class="muted">Submitted by: ${esc(names[x.submitted_by]||"Unknown roommate")}</div>`:""}
+   ${x.receipt_path?`<div class="actions"><button type="button" data-receipt="${esc(x.receipt_path)}">View receipt</button></div>`:""}
+  </div>`).join(""):"No records to display.";
+
+ await loadDashboard(approved);
 }
+
+async function loadDashboard(approvedExpenses){
+ if(!user||!profile)return;
+
+ const sharedResult=await sb.from("shared_expenses")
+  .select("id,description,category,amount,expense_date")
+  .order("expense_date",{ascending:false}).limit(500);
+
+ if(sharedResult.error){
+  $("categoryTable").textContent="Could not load shared bills: "+sharedResult.error.message;
+  $("balances").textContent="Could not load shared bills: "+sharedResult.error.message;
+  return;
+ }
+
+ const shared=sharedResult.data||[];
+ const sharedTotal=shared.reduce((s,x)=>s+Number(x.amount||0),0);
+ const personalTotal=approvedExpenses.reduce((s,x)=>s+Number(x.amount||0),0);
+ const combinedTotal=personalTotal+sharedTotal;
+
+ const br=await sb.rpc("get_room_balances");
+ if(br.error){
+  $("balances").textContent="Could not calculate balances: "+br.error.message;
+  return;
+ }
+
+ currentBalances=br.data||[];
+ const people=currentBalances.length;
+ const equalShare=people?Number(currentBalances[0].equal_share||0):0;
+
+ $("dashPersonal").textContent=money(personalTotal);
+ $("dashShared").textContent=money(sharedTotal);
+ $("dashCombined").textContent=money(combinedTotal);
+ $("dashShare").textContent=money(equalShare);
+ $("dashPeople").textContent=String(people);
+
+ const me=currentBalances.find(x=>x.roommate_id===user.id);
+ const myBal=me?Number(me.net_balance||0):0;
+ $("myBalance").textContent=money(myBal);
+ $("myBalance").style.color=myBal>0.009?"#a65a08":myBal<-.009?"#176b43":"#526274";
+
+ renderCategorySummary(approvedExpenses,shared,people,combinedTotal);
+ renderBalances(currentBalances);
+ $("roommateOverview").textContent=people+
+  " approved people share the costs. Outstanding shared bills currently total "+
+  money(sharedTotal)+".";
+}
+
+function renderCategorySummary(personal,shared,people,total){
+ const sums={};
+ for(const x of personal){
+  const category=x.category||"Other personal expense";
+  sums[category]=(sums[category]||0)+Number(x.amount||0);
+ }
+ for(const x of shared){
+  const category=x.category||"Other shared bills";
+  sums[category]=(sums[category]||0)+Number(x.amount||0);
+ }
+
+ const entries=Object.entries(sums).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+ $("donutTotal").textContent=money(total);
+
+ if(!entries.length||total<=0){
+  $("donut").style.background="#e8edf2";
+  $("chartLegend").innerHTML='<div class="empty">No approved expenses or shared bills yet.</div>';
+  $("categoryTable").innerHTML='<div class="empty">No category totals available yet.</div>';
+  return;
+ }
+
+ let cursor=0;
+ const stops=[];
+ entries.forEach(([name,value],i)=>{
+  const start=cursor;
+  cursor+=(value/total)*100;
+  stops.push(`${COLORS[i%COLORS.length]} ${start}% ${cursor}%`);
+ });
+ $("donut").style.background=`conic-gradient(${stops.join(",")})`;
+
+ $("chartLegend").innerHTML=entries.map(([name,value],i)=>`
+  <div class="legend-row">
+   <div class="legend-name">
+    <span class="dot" style="background:${COLORS[i%COLORS.length]}"></span>
+    <span>${esc(name)}</span>
+   </div>
+   <b>${(value/total*100).toFixed(1)}%</b>
+  </div>`).join("");
+
+ $("categoryTable").innerHTML=`
+  <div class="table-wrap"><table>
+   <thead><tr>
+    <th>Category</th><th class="num">Total amount</th>
+    <th class="num">Equal share per person</th>
+   </tr></thead>
+   <tbody>
+    ${entries.map(([name,value])=>`
+     <tr>
+      <td>${esc(name)}</td>
+      <td class="num">${money(value)}</td>
+      <td class="num">${money(people?value/people:0)}</td>
+     </tr>`).join("")}
+    <tr>
+     <td><b>Total</b></td>
+     <td class="num"><b>${money(total)}</b></td>
+     <td class="num"><b>${money(people?total/people:0)}</b></td>
+    </tr>
+   </tbody>
+  </table></div>`;
+}
+
+function renderBalances(rows){
+ if(!rows.length){
+  $("balances").innerHTML='<div class="empty">No approved roommates found.</div>';
+  return;
+ }
+ $("balances").innerHTML=`
+  <div class="table-wrap"><table>
+   <thead><tr>
+    <th>Roommate</th>
+    <th class="num">Paid</th>
+    <th class="num">Equal share</th>
+    <th class="num">Balance</th>
+   </tr></thead>
+   <tbody>
+   ${rows.map(b=>{
+    const balance=Number(b.net_balance||0);
+    const cls=balance>.009?"balance-owe":balance<-.009?"balance-credit":"balance-zero";
+    const label=balance>.009?"Owes":balance<-.009?"Paid extra":"Settled";
+    return `<tr>
+     <td>${esc(b.roommate_name||"Roommate")}${b.roommate_id===user.id?' <b>(You)</b>':""}</td>
+     <td class="num">${money(b.total_paid)}</td>
+     <td class="num">${money(b.equal_share)}</td>
+     <td class="num ${cls}">${money(Math.abs(balance))}<br><small>${label}</small></td>
+    </tr>`;
+   }).join("")}
+   </tbody>
+  </table></div>`;
+}
+
 async function loadSharedExpenses(){
- const list=$("sharedExpenseRecords");list.textContent="Loading…";
- const r=await sb.from("shared_expenses").select("id,description,amount,expense_date").order("expense_date",{ascending:false});
+ const list=$("sharedExpenseRecords");
+ list.textContent="Loading…";
+ const r=await sb.from("shared_expenses")
+  .select("id,description,category,amount,expense_date")
+  .order("expense_date",{ascending:false});
  if(r.error){list.textContent="Could not load bills: "+r.error.message;return}
+
  const sr=await sb.rpc("get_shared_expense_summary");
  if(sr.error){list.textContent="Could not load summary: "+sr.error.message;return}
  const t=sr.data?.[0]||{},items=r.data||[];
- list.innerHTML=`<div class="item"><b>Total outstanding shared bills:</b> ${money(t.total_shared_expenses||0)}<div class="muted">Approved people, including admin: ${t.approved_roommate_count||0}</div><div class="muted">Equal share per person: ${money(t.equal_share_per_roommate||0)}</div></div>`+(items.length?items.map(x=>`<div class="item"><b>${esc(x.description)}</b> — ${money(x.amount)}<div class="muted">${esc(x.expense_date||"")}</div></div>`).join(""):"<p>No shared bills recorded yet.</p>");
+
+ list.innerHTML=`
+  <div class="item">
+   <b>Total outstanding shared bills:</b> ${money(t.total_shared_expenses||0)}
+   <div class="muted">Approved people, including admin: ${t.approved_roommate_count||0}</div>
+   <div class="muted">Equal share per person: ${money(t.equal_share_per_roommate||0)}</div>
+  </div>`+
+  (items.length?items.map(x=>`
+   <div class="item">
+    <b>${esc(x.description)}</b> — ${money(x.amount)}
+    <div class="muted">${esc(x.category||"Other shared bills")} · ${esc(x.expense_date||"")}</div>
+   </div>`).join(""):"<p>No shared bills recorded yet.</p>");
 }
+
 $("authForm").onsubmit=async e=>{
- e.preventDefault();const button=$("submitAuth");button.disabled=true;clear("authMsg");
+ e.preventDefault();
+ const button=$("submitAuth");
+ button.disabled=true;clear("authMsg");
  try{
   const email=$("email").value.trim(),password=$("password").value;
   if(mode==="signup"){
    if(password!==$("password2").value)throw Error("Passwords do not match.");
-   const r=await sb.auth.signUp({email,password,options:{data:{display_name:$("name").value.trim()}}});
+   const r=await sb.auth.signUp({
+    email,password,
+    options:{data:{display_name:$("name").value.trim()}}
+   });
    if(r.error)throw r.error;
-   if(r.data.session)await showSession(r.data.session);else msg("authMsg","Registration successful. You can now sign in with your email and password. Your account will remain pending until an administrator approves it.","success");
-  }else{const r=await sb.auth.signInWithPassword({email,password});if(r.error)throw r.error;await showSession(r.data.session)}
- }catch(err){msg("authMsg",err.message||"Authentication failed.","error")}finally{button.disabled=false}
+   if(r.data.session)await showSession(r.data.session);
+   else msg("authMsg","Registration successful. You can now sign in with your email and password. Your account will remain pending until an administrator approves it.","success");
+  }else{
+   const r=await sb.auth.signInWithPassword({email,password});
+   if(r.error)throw r.error;
+   await showSession(r.data.session);
+  }
+ }catch(err){
+  msg("authMsg",err.message||"Authentication failed.","error");
+ }finally{button.disabled=false}
 };
-$("refresh").onclick=async()=>{if(!user)return;const r=await sb.from("profiles").select("*").eq("id",user.id).maybeSingle();if(r.error)msg("pendingMsg",r.error.message,"error");else if(r.data?.account_status==="approved")await showSession({user});else msg("pendingMsg",r.data?"Account status: "+r.data.account_status:"Profile not found. Contact administrator.")};
-$("logout").onclick=logout;$("logout2").onclick=logout;$("reload").onclick=loadRecords;
-$("date").value=new Date().toISOString().slice(0,10);$("sharedDate").value=new Date().toISOString().slice(0,10);
+
+$("refresh").onclick=async()=>{
+ if(!user)return;
+ const r=await sb.from("profiles").select("*").eq("id",user.id).maybeSingle();
+ if(r.error)msg("pendingMsg",r.error.message,"error");
+ else if(r.data?.account_status==="approved")await showSession({user});
+ else msg("pendingMsg",r.data?"Account status: "+r.data.account_status:"Profile not found. Contact administrator.");
+};
+
+$("logout").onclick=logout;
+$("logout2").onclick=logout;
+$("reload").onclick=loadRecords;
+$("refreshDashboard").onclick=loadRecords;
+
+$("date").value=today();
+$("sharedDate").value=today();
+
 function showAppTab(tab){
- const admin=profile?.role==="admin";if(tab==="shared"&&!admin)tab="home";
- const views={home:$("homeView"),submit:$("submitView"),records:$("recordsView"),shared:$("sharedExpensesView")};
+ const admin=profile?.role==="admin";
+ if(tab==="shared"&&!admin)tab="home";
+ const views={
+  home:$("homeView"),submit:$("submitView"),
+  records:$("recordsView"),shared:$("sharedExpensesView")
+ };
  Object.entries(views).forEach(([name,el])=>el.classList.toggle("hidden",name!==tab));
- $("homeTab").classList.toggle("secondary",tab!=="home");$("submitTab").classList.toggle("secondary",tab!=="submit");$("recordsTab").classList.toggle("secondary",tab!=="records");$("sharedExpensesTab").classList.toggle("secondary",tab!=="shared");$("sharedExpensesTab").classList.toggle("hidden",!admin);
- if(tab==="records")loadRecords();if(tab==="shared"&&admin)loadSharedExpenses();
+ $("homeTab").classList.toggle("secondary",tab!=="home");
+ $("submitTab").classList.toggle("secondary",tab!=="submit");
+ $("recordsTab").classList.toggle("secondary",tab!=="records");
+ $("sharedExpensesTab").classList.toggle("secondary",tab!=="shared");
+ $("sharedExpensesTab").classList.toggle("hidden",!admin);
+ if(tab==="records")loadRecords();
+ if(tab==="shared"&&admin)loadSharedExpenses();
 }
-$("homeTab").onclick=()=>showAppTab("home");$("submitTab").onclick=()=>showAppTab("submit");$("recordsTab").onclick=()=>showAppTab("records");$("sharedExpensesTab").onclick=()=>showAppTab("shared");
+$("homeTab").onclick=()=>showAppTab("home");
+$("submitTab").onclick=()=>showAppTab("submit");
+$("recordsTab").onclick=()=>showAppTab("records");
+$("sharedExpensesTab").onclick=()=>showAppTab("shared");
+
 $("sharedExpenseForm").onsubmit=async e=>{
- e.preventDefault();const button=$("sharedExpenseForm").querySelector('button[type="submit"]');button.disabled=true;clear("sharedExpenseMsg");
+ e.preventDefault();
+ const button=$("sharedExpenseForm").querySelector('button[type="submit"]');
+ button.disabled=true;clear("sharedExpenseMsg");
  try{
-  if(!user||profile?.role!=="admin"||profile?.account_status!=="approved")throw Error("Only an approved admin can record shared bills.");
-  const description=$("sharedDesc").value.trim(),amount=Number($("sharedAmount").value),date=$("sharedDate").value;
-  if(!description||!Number.isFinite(amount)||amount<=0||!date)throw Error("Enter a description, valid amount, and date.");
-  const r=await sb.from("shared_expenses").insert({description,amount,expense_date:date,created_by:user.id});if(r.error)throw r.error;
-  $("sharedExpenseForm").reset();$("sharedDate").value=new Date().toISOString().slice(0,10);msg("sharedExpenseMsg","Outstanding room bill saved.","success");await loadSharedExpenses();await loadRecords();
- }catch(err){msg("sharedExpenseMsg",err.message||"Could not save shared bill.","error")}finally{button.disabled=false}
+  if(!user||profile?.role!=="admin"||profile?.account_status!=="approved")
+   throw Error("Only an approved admin can record shared bills.");
+  const description=$("sharedDesc").value.trim();
+  const category=$("sharedCategory").value;
+  const amount=Number($("sharedAmount").value);
+  const date=$("sharedDate").value;
+  if(!description||!Number.isFinite(amount)||amount<=0||!date)
+   throw Error("Enter a description, valid amount, and date.");
+
+  const r=await sb.from("shared_expenses").insert({
+   description,category,amount,expense_date:date,created_by:user.id
+  });
+  if(r.error)throw r.error;
+
+  $("sharedExpenseForm").reset();
+  $("sharedDate").value=today();
+  msg("sharedExpenseMsg","Outstanding room bill saved.","success");
+  await loadSharedExpenses();
+  await loadRecords();
+ }catch(err){
+  msg("sharedExpenseMsg",err.message||"Could not save shared bill.","error");
+ }finally{button.disabled=false}
 };
+
 $("expenseForm").onsubmit=async e=>{
- e.preventDefault();const button=$("expenseForm").querySelector('button[type="submit"]');button.disabled=true;const file=$("receipt").files[0];let path=null;
+ e.preventDefault();
+ const button=$("expenseForm").querySelector('button[type="submit"]');
+ button.disabled=true;
+ const file=$("receipt").files[0];
+ let path=null;
  try{
-  if(!user||profile?.account_status!=="approved")throw Error("Your account must be approved to submit expenses.");
-  const amount=Number($("amount").value);if(!Number.isFinite(amount)||amount<=0)throw Error("Enter a valid amount.");
+  if(!user||profile?.account_status!=="approved")
+   throw Error("Your account must be approved to submit expenses.");
+  const amount=Number($("amount").value);
+  if(!Number.isFinite(amount)||amount<=0)throw Error("Enter a valid amount.");
+
   if(file){
-   const types={"image/jpeg":"jpg","image/png":"png","image/webp":"webp","application/pdf":"pdf"};
+   const types={
+    "image/jpeg":"jpg","image/png":"png",
+    "image/webp":"webp","application/pdf":"pdf"
+   };
    if(!types[file.type])throw Error("Choose a JPEG, PNG, WebP, or PDF receipt.");
    if(file.size>5*1024*1024)throw Error("Receipt must be 5 MB or smaller.");
    path=`${user.id}/${crypto.randomUUID()}.${types[file.type]}`;
-   const up=await sb.storage.from("receipts").upload(path,file,{contentType:file.type,upsert:false});if(up.error)throw up.error;
+   const up=await sb.storage.from("receipts").upload(path,file,{
+    contentType:file.type,upsert:false
+   });
+   if(up.error)throw up.error;
   }
-  const r=await sb.from("expenses").insert({submitted_by:user.id,description:$("desc").value.trim(),amount,category:$("category").value,expense_date:$("date").value,payment_method:$("payment").value,receipt_path:path,status:"pending"});
+
+  const r=await sb.from("expenses").insert({
+   submitted_by:user.id,
+   description:$("desc").value.trim(),
+   amount,
+   category:$("category").value,
+   expense_date:$("date").value,
+   payment_method:$("payment").value,
+   receipt_path:path,
+   status:"pending"
+  });
   if(r.error)throw r.error;
-  $("expenseForm").reset();$("date").value=new Date().toISOString().slice(0,10);msg("expenseMsg","Expense submitted for approval.","success");await loadRecords();
- }catch(err){if(path)await sb.storage.from("receipts").remove([path]);msg("expenseMsg","Could not submit expense: "+(err.message||"Unknown error"),"error")}finally{button.disabled=false}
+
+  $("expenseForm").reset();
+  $("date").value=today();
+  msg("expenseMsg","Expense submitted for approval.","success");
+  await loadRecords();
+ }catch(err){
+  if(path)await sb.storage.from("receipts").remove([path]);
+  msg("expenseMsg","Could not submit expense: "+(err.message||"Unknown error"),"error");
+ }finally{button.disabled=false}
 };
-$("records").addEventListener("click",e=>{const b=e.target.closest("button[data-receipt]");if(b)openReceipt(b.dataset.receipt)});
-$("admin").addEventListener("click",async e=>{
- const b=e.target.closest("button[data-user],button[data-expense]");if(!b)return;b.disabled=true;
- try{
-  let r;if(b.dataset.user)r=await sb.from("profiles").update({account_status:b.dataset.status}).eq("id",b.dataset.user);else r=await sb.from("expenses").update({status:b.dataset.status}).eq("id",b.dataset.expense);
-  if(r.error)throw r.error;msg("adminMsg","Action completed: "+b.dataset.status,"success");await loadAdminPanel();await loadRecords();
- }catch(err){msg("adminMsg","Could not update: "+err.message,"error")}finally{b.disabled=false}
+
+$("records").addEventListener("click",e=>{
+ const b=e.target.closest("button[data-receipt]");
+ if(b)openReceipt(b.dataset.receipt);
 });
+
+$("admin").addEventListener("click",async e=>{
+ const b=e.target.closest("button[data-user],button[data-expense]");
+ if(!b)return;
+ b.disabled=true;
+ try{
+  let r;
+  if(b.dataset.user){
+   r=await sb.from("profiles")
+    .update({account_status:b.dataset.status}).eq("id",b.dataset.user);
+  }else{
+   r=await sb.from("expenses")
+    .update({status:b.dataset.status}).eq("id",b.dataset.expense);
+  }
+  if(r.error)throw r.error;
+  msg("adminMsg","Action completed: "+b.dataset.status,"success");
+  await loadAdminPanel();
+  await loadRecords();
+ }catch(err){
+  msg("adminMsg","Could not update: "+err.message,"error");
+ }finally{b.disabled=false}
+});
+
 async function loadAdminPanel(){
  if(profile?.role!=="admin"||profile?.account_status!=="approved")return;
- $("adminUsers").textContent="Loading accounts…";$("adminExpenses").textContent="Loading expenses…";
- const ur=await sb.from("profiles").select("id,display_name,account_status,role").order("display_name");
- if(ur.error)$("adminUsers").textContent="Could not load accounts: "+ur.error.message;
- else{const pending=(ur.data||[]).filter(p=>p.account_status==="pending");$("adminUsers").innerHTML=pending.length?pending.map(p=>`<div class="item"><b>${esc(p.display_name||"Roommate")}</b><div class="muted">Status: ${esc(p.account_status)}</div><button type="button" data-user="${esc(p.id)}" data-status="approved">Approve</button> <button type="button" class="secondary" data-user="${esc(p.id)}" data-status="rejected">Reject</button></div>`).join(""):"No pending accounts."}
- const er=await sb.from("expenses").select("id,description,amount,category,expense_date,payment_method,submitted_by,receipt_path").eq("status","pending").order("created_at",{ascending:false});
- if(er.error){$("adminExpenses").textContent="Could not load expenses: "+er.error.message;return}
- const rows=er.data||[],ids=[...new Set(rows.map(x=>x.submitted_by).filter(Boolean))],pr=ids.length?await sb.from("profiles").select("id,display_name").in("id",ids):{data:[]},names=Object.fromEntries((pr.data||[]).map(p=>[p.id,p.display_name||"Roommate"]));
- $("adminExpenses").innerHTML=rows.length?rows.map(x=>`<div class="item"><b>${esc(x.description)}</b> — ${money(x.amount)}<div class="muted">Submitted by: ${esc(names[x.submitted_by]||"Unknown roommate")}</div><div class="muted">${esc(x.expense_date||"")} · ${esc(x.category||"")} · ${esc(x.payment_method||"")}</div>${x.receipt_path?`<button type="button" data-receipt="${esc(x.receipt_path)}">View receipt</button> `:""}<button type="button" data-expense="${esc(x.id)}" data-status="approved">Approve</button> <button type="button" class="secondary" data-expense="${esc(x.id)}" data-status="rejected">Reject</button></div>`).join(""):"No pending expenses.";
+ $("adminUsers").textContent="Loading accounts…";
+ $("adminExpenses").textContent="Loading expenses…";
+
+ const ur=await sb.from("profiles")
+  .select("id,display_name,account_status,role").order("display_name");
+
+ if(ur.error){
+  $("adminUsers").textContent="Could not load accounts: "+ur.error.message;
+ }else{
+  const pending=(ur.data||[]).filter(p=>p.account_status==="pending");
+  $("adminUsers").innerHTML=pending.length?pending.map(p=>`
+   <div class="item">
+    <b>${esc(p.display_name||"Roommate")}</b>
+    <div class="muted">Status: ${esc(p.account_status)}</div>
+    <button type="button" data-user="${esc(p.id)}" data-status="approved">Approve</button>
+    <button type="button" class="danger" data-user="${esc(p.id)}" data-status="rejected">Reject</button>
+   </div>`).join(""):"No pending accounts.";
+ }
+
+ const er=await sb.from("expenses")
+  .select("id,description,amount,category,expense_date,payment_method,submitted_by,receipt_path")
+  .eq("status","pending").order("created_at",{ascending:false});
+
+ if(er.error){
+  $("adminExpenses").textContent="Could not load expenses: "+er.error.message;
+  return;
+ }
+
+ const rows=er.data||[];
+ const ids=[...new Set(rows.map(x=>x.submitted_by).filter(Boolean))];
+ const pr=ids.length?await sb.from("profiles").select("id,display_name").in("id",ids):{data:[]};
+ const names=Object.fromEntries((pr.data||[]).map(p=>[p.id,p.display_name||"Roommate"]));
+
+ $("adminExpenses").innerHTML=rows.length?rows.map(x=>`
+  <div class="item">
+   <b>${esc(x.description)}</b> — ${money(x.amount)}
+   <div class="muted">Submitted by: ${esc(names[x.submitted_by]||"Unknown roommate")}</div>
+   <div class="muted">${esc(x.expense_date||"")} · ${esc(x.category||"")} · ${esc(x.payment_method||"")}</div>
+   ${x.receipt_path?`<button type="button" data-receipt="${esc(x.receipt_path)}">View receipt</button> `:""}
+   <button type="button" data-expense="${esc(x.id)}" data-status="approved">Approve</button>
+   <button type="button" class="danger" data-expense="${esc(x.id)}" data-status="rejected">Reject</button>
+  </div>`).join(""):"No pending expenses.";
 }
-$("admin").addEventListener("click",e=>{const b=e.target.closest("button[data-receipt]");if(b)openReceipt(b.dataset.receipt)});
+
+$("admin").addEventListener("click",e=>{
+ const b=e.target.closest("button[data-receipt]");
+ if(b)openReceipt(b.dataset.receipt);
+});
 $("adminRefresh").onclick=loadAdminPanel;
-if(!window.supabase){msg("setup","Supabase client failed to load. Check your internet connection.","error")}else{
- sb=window.supabase.createClient(SUPABASE_URL,KEY,{auth:{persistSession:true,autoRefreshToken:true}});
- sb.auth.getSession().then(r=>{if(r.data.session)showSession(r.data.session);else showAuth()});
- sb.auth.onAuthStateChange((event,session)=>{if(session&&event!=="INITIAL_SESSION")showSession(session);else if(!session)showAuth()});
+
+if(!window.supabase){
+ msg("setup","Supabase client failed to load. Check your internet connection.","error");
+}else{
+ sb=window.supabase.createClient(SUPABASE_URL,KEY,{
+  auth:{persistSession:true,autoRefreshToken:true}
+ });
+ sb.auth.getSession().then(r=>{
+  if(r.data.session)showSession(r.data.session);
+  else showAuth();
+ });
+ sb.auth.onAuthStateChange((event,session)=>{
+  if(session&&event!=="INITIAL_SESSION")showSession(session);
+  else if(!session)showAuth();
+ });
 }
-if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+
+if("serviceWorker"in navigator){
+ window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+}
 </script>
 </body>
 </html>
